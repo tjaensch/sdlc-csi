@@ -220,8 +220,18 @@ jobs:
           3. Scan enabled categories: ${CATEGORIES:-all categories enabled}
           4. Exclude paths matching: ${EXCLUDE_PATHS:-none}
           5. Rank all findings by severity (HIGH → MEDIUM → LOW)
-          6. $(if [[ "$DRY_RUN" == "true" ]]; then echo "Report all findings without making changes."; else echo "Select the SINGLE highest-priority issue and apply a MINIMAL fix."; fi)
+          6. $(if [[ "$DRY_RUN" == "true" ]]; then echo "Report all findings without making changes."; else echo "Select the SINGLE highest-priority issue and apply a MINIMAL fix. You MUST use the editFiles tool to make the change — do NOT just describe what should change. Actually edit the file."; fi)
           7. Generate structured output with 'Applied Fix' and 'Remaining Issues' sections
+
+          $(if [[ "$DRY_RUN" != "true" ]]; then cat << 'TOOL_EOF'
+          IMPORTANT — TOOL USE REQUIRED:
+          You are running in fix mode. After identifying the highest-priority issue, you MUST:
+          1. Use the editFiles tool to modify the file(s) that need fixing
+          2. Make the minimal change necessary to resolve the issue
+          3. Verify the change by re-reading the file
+          Do NOT skip the editFiles step. If you only report the issue without editing, the workflow cannot create a PR and your fix is lost.
+          TOOL_EOF
+          fi)
 
           CRITICAL RULES:
           - NEVER delete files without replacement
