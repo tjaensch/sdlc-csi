@@ -124,11 +124,16 @@ def main() -> None:
         produce a structured CSI report that still uses the standard section
         headings expected by the workflow.
 
+        IMPORTANT RULES:
+        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
+        - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
+        - The *Scan completed:* line must always be the very last line of your output.
+
         Output your response in this exact format:
 
         ## Applied Fix
 
-        **Issue ID**: CSI-SCAN-000
+        **Issue ID**: CSI-QUALITY-000
         **Category**: QUALITY
         **Severity**: 🟢 LOW
         **Description**: No fix applied — OpenAI backend runs in scan-only mode.
@@ -165,11 +170,6 @@ def main() -> None:
         | **Total** | **X** |
 
         *Scan completed: <ISO 8601 timestamp>*
-
-        IMPORTANT:
-        - Always include ALL sections above (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
-        - If no issues are found, set all counts to 0 and write "No remaining issues detected." under Remaining Issues.
-        - The *Scan completed:* line must always be the last line of output.
     """)
 
     user_message = f"{agent_prompt}\n\n---\n\n{repo_context}"
