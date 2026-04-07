@@ -27,7 +27,7 @@ backend: copilot
 
 # Override the LLM model. Leave empty for default routing.
 # Examples: "gpt-4o", "claude-sonnet-4", "gpt-5.4"
-model: ""
+model: "gpt-5.4"
 
 # Maximum time in seconds for the scan (default: 900 = 15 min).
 timeout: 900

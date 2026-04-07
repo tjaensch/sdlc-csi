@@ -101,8 +101,8 @@ stale_pr_days: 3
 # LLM backend: "copilot" (scan + fix) or "openai" (scan only)
 backend: copilot
 
-# Override model (empty = default routing)
-model: ""
+# Override model (default: gpt-5.4)
+model: "gpt-5.4"
 
 # Scan timeout in seconds
 timeout: 900

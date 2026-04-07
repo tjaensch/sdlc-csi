@@ -18,10 +18,10 @@ on:
         type: string
         default: ''
       model:
-        description: 'LLM model ID to use. Leave empty for default routing.'
+        description: 'LLM model ID to use (default: gpt-5.4)'
         required: false
         type: string
-        default: ''
+        default: 'gpt-5.4'
       timeout:
         description: 'Scan timeout in seconds (default: 900 = 15 min)'
         required: false
@@ -323,7 +323,7 @@ jobs:
         env:
           COPILOT_PAT: ${{ secrets.COPILOT_TOKEN }}
           COPILOT_TIMEOUT: ${{ steps.config.outputs.timeout }}
-          COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model }}
+          COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model || 'gpt-5.4' }}
           PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
         run: |
           set -euo pipefail
