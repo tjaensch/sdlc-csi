@@ -58,7 +58,18 @@ CSI needs an LLM backend. Choose one:
 - Value: Your OpenAI API key
 - Set `backend: openai` in `.csi.yml`
 
-### 3. Commit and Run
+### 3. Enable PR Creation
+
+CSI creates pull requests via GitHub Actions. You must enable this in your repo:
+
+1. Go to **Settings → Actions → General**
+2. Scroll to **Workflow permissions**
+3. Check **"Allow GitHub Actions to create and approve pull requests"**
+4. Click **Save**
+
+Without this, the workflow will run successfully but fail at the PR creation step.
+
+### 4. Commit and Run
 
 ```bash
 git add .csi.yml .github/
