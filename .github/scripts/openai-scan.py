@@ -128,10 +128,10 @@ def main() -> None:
 
         ## Applied Fix
 
-        **Issue ID**: None (scan-only backend)
-        **Category**: N/A
-        **Severity**: N/A
-        **Description**: No issues were fixed because the OpenAI backend runs in scan-only mode.
+        **Issue ID**: CSI-SCAN-000
+        **Category**: QUALITY
+        **Severity**: 🟢 LOW
+        **Description**: No fix applied — OpenAI backend runs in scan-only mode.
 
         ### What Changed
         No repository files were modified.
@@ -164,7 +164,12 @@ def main() -> None:
         | Config Consistency | X |
         | **Total** | **X** |
 
-        If no issues are found, say: "✅ No maintenance issues detected. Repository is in good health."
+        *Scan completed: <ISO 8601 timestamp>*
+
+        IMPORTANT:
+        - Always include ALL sections above (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
+        - If no issues are found, set all counts to 0 and write "No remaining issues detected." under Remaining Issues.
+        - The *Scan completed:* line must always be the last line of output.
     """)
 
     user_message = f"{agent_prompt}\n\n---\n\n{repo_context}"
