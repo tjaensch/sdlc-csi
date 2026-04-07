@@ -9,7 +9,7 @@ Weekly Schedule (or manual trigger)
     │
     ▼
 ┌─────────────────────────────────┐
-│  CSI Workflow (.github/actions) │
+│  CSI Workflow (.github/workflows)│
 │                                 │
 │  1. Read .csi.yml config        │
 │  2. Build agent prompt          │
