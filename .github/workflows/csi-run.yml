@@ -1,6 +1,12 @@
 name: "CSI - Run"
 run-name: "CSI — ${{ inputs.dry_run == true && '🔍 Dry Run' || '🔧 Scan & Fix' }}"
 
+# ── Default model ──────────────────────────────────────────────────────
+# Change this single value when a newer tool-capable model becomes available.
+# Users can override per-repo via .csi.yml → model or the workflow dispatch input.
+env:
+  CSI_DEFAULT_MODEL: "gpt-5.4"
+
 on:
   schedule:
     # Default: weekly Monday at 10:00 UTC. Override via .csi.yml → schedule
@@ -18,10 +24,10 @@ on:
         type: string
         default: ''
       model:
-        description: 'LLM model ID to use (default: gpt-5.4)'
+        description: 'LLM model ID override (leave empty to use CSI_DEFAULT_MODEL)'
         required: false
         type: string
-        default: 'gpt-5.4'
+        default: ''
       timeout:
         description: 'Scan timeout in seconds (default: 900 = 15 min)'
         required: false
@@ -339,7 +345,7 @@ jobs:
         env:
           COPILOT_PAT: ${{ secrets.COPILOT_TOKEN }}
           COPILOT_TIMEOUT: ${{ steps.config.outputs.timeout }}
-          COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model || 'gpt-5.4' }}
+          COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model || env.CSI_DEFAULT_MODEL }}
           PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
         run: |
           set -euo pipefail

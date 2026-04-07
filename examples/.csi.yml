@@ -25,9 +25,9 @@ stale_pr_days: 3
 # "openai"  — OpenAI API (requires OPENAI_API_KEY secret; scan-only, no auto-fix)
 backend: copilot
 
-# Override the LLM model. Default: gpt-5.4
+# Override the LLM model. Leave empty to use the workflow default.
 # Examples: "gpt-4o", "claude-sonnet-4", "gpt-5.4"
-model: "gpt-5.4"
+# model: "gpt-5.4"
 
 # Maximum time in seconds for the scan (default: 900 = 15 min).
 timeout: 900
