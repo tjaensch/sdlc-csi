@@ -1,11 +1,13 @@
 name: "CSI - Run"
 run-name: "CSI — ${{ inputs.dry_run == true && '🔍 Dry Run' || '🔧 Scan & Fix' }}"
 
-# ── Default model ──────────────────────────────────────────────────────
-# Change this single value when a newer tool-capable model becomes available.
+# ── Model preference list ──────────────────────────────────────────────
+# Ordered list of models known to reliably invoke the editFiles tool.
+# The workflow tries each in order and uses the first one the CLI accepts.
 # Users can override per-repo via .csi.yml → model or the workflow dispatch input.
+# Update this list when newer tool-capable models become available.
 env:
-  CSI_DEFAULT_MODEL: "gpt-5.4"
+  CSI_MODEL_PREFERENCE: "gpt-5.4,claude-sonnet-4,gpt-4o"
 
 on:
   schedule:
@@ -345,7 +347,8 @@ jobs:
         env:
           COPILOT_PAT: ${{ secrets.COPILOT_TOKEN }}
           COPILOT_TIMEOUT: ${{ steps.config.outputs.timeout }}
-          COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model || env.CSI_DEFAULT_MODEL }}
+          COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model }}
+          MODEL_PREFERENCE: ${{ env.CSI_MODEL_PREFERENCE }}
           PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
         run: |
           set -euo pipefail
@@ -375,53 +378,93 @@ jobs:
           REPORT_FILE="${RUNNER_TEMP}/csi-report-$(date +%Y%m%d-%H%M%S).md"
           PROMPT="$(cat "$PROMPT_FILE")"
 
-          MODEL_ARGS=()
-          if [[ -n "${COPILOT_MODEL_INPUT:-}" ]]; then
-            if [[ "$COPILOT_MODEL_INPUT" =~ ^[A-Za-z0-9._:-]+$ ]]; then
-              MODEL_ARGS=(--model "$COPILOT_MODEL_INPUT")
-            fi
+          # Build model list: explicit override first, then preference list
+          MODELS_TO_TRY=()
+          if [[ -n "${COPILOT_MODEL_INPUT:-}" ]] && [[ "$COPILOT_MODEL_INPUT" =~ ^[A-Za-z0-9._:-]+$ ]]; then
+            MODELS_TO_TRY+=("$COPILOT_MODEL_INPUT")
           fi
+          IFS=',' read -ra PREF_MODELS <<< "$MODEL_PREFERENCE"
+          for m in "${PREF_MODELS[@]}"; do
+            m="$(echo "$m" | xargs)"
+            # Don't duplicate the explicit override
+            if [[ "$m" != "${COPILOT_MODEL_INPUT:-}" ]]; then
+              MODELS_TO_TRY+=("$m")
+            fi
+          done
 
-          SCAN_SUCCESS=true
-          env -i \
-            HOME="$HOME" \
-            PATH="$PATH" \
-            TMPDIR="${TMPDIR:-/tmp}" \
-            GH_CONFIG_DIR="$GH_CONFIG_DIR" \
-            timeout "$TIMEOUT" \
-            "$COPILOT_BIN" "${MODEL_ARGS[@]}" -s -p "$PROMPT" \
-            --agent "$AGENT_NAME" \
-            --allow-all-tools \
-            | tee "$REPORT_FILE" || {
-              EXIT_CODE=$?
-              SCAN_SUCCESS=false
-              if [[ $EXIT_CODE -eq 124 ]]; then
-                echo "::error::Copilot CLI timed out after ${TIMEOUT}s"
-              else
-                echo "::warning::Copilot CLI exited with code $EXIT_CODE"
-              fi
-            }
+          SCAN_SUCCESS=false
+          USED_MODEL=""
 
-          # Retry without -s if empty output
-          INITIAL_LINES=$(wc -l < "$REPORT_FILE" 2>/dev/null || echo 0)
-          if [[ "$INITIAL_LINES" -eq 0 ]]; then
-            echo "::warning::Empty output. Retrying without -s..."
+          for MODEL in "${MODELS_TO_TRY[@]}"; do
+            echo "::group::Trying model: $MODEL"
+            > "$REPORT_FILE"  # reset
+
+            EXIT_CODE=0
             env -i \
               HOME="$HOME" \
               PATH="$PATH" \
               TMPDIR="${TMPDIR:-/tmp}" \
               GH_CONFIG_DIR="$GH_CONFIG_DIR" \
               timeout "$TIMEOUT" \
-              "$COPILOT_BIN" "${MODEL_ARGS[@]}" -p "$PROMPT" \
+              "$COPILOT_BIN" --model "$MODEL" -s -p "$PROMPT" \
+              --agent "$AGENT_NAME" \
+              --allow-all-tools \
+              2>"${RUNNER_TEMP}/copilot_stderr.log" \
+              | tee "$REPORT_FILE" || EXIT_CODE=$?
+
+            LINES=$(wc -l < "$REPORT_FILE" 2>/dev/null || echo 0)
+            STDERR_CONTENT=$(cat "${RUNNER_TEMP}/copilot_stderr.log" 2>/dev/null || true)
+            echo "::endgroup::"
+
+            # If model is not available, stderr typically contains "model not found" or similar
+            if [[ $EXIT_CODE -ne 0 ]] && [[ "$LINES" -lt 3 ]] && echo "$STDERR_CONTENT" | grep -qiE 'model.*not|not.*found|unavailable|unsupported|invalid.*model'; then
+              echo "::warning::Model '$MODEL' not available, trying next..."
+              continue
+            fi
+
+            if [[ "$LINES" -gt 0 ]]; then
+              SCAN_SUCCESS=true
+              USED_MODEL="$MODEL"
+              echo "::notice::Scan succeeded with model: $MODEL"
+              break
+            fi
+
+            # Retry without -s if empty output
+            echo "::warning::Empty output with -s flag. Retrying without -s..."
+            > "$REPORT_FILE"
+            env -i \
+              HOME="$HOME" \
+              PATH="$PATH" \
+              TMPDIR="${TMPDIR:-/tmp}" \
+              GH_CONFIG_DIR="$GH_CONFIG_DIR" \
+              timeout "$TIMEOUT" \
+              "$COPILOT_BIN" --model "$MODEL" -p "$PROMPT" \
               --agent "$AGENT_NAME" \
               --allow-all-tools \
               2>"${RUNNER_TEMP}/copilot_stderr.log" | \
               tee "$REPORT_FILE" || true
 
-            FALLBACK_LINES=$(wc -l < "$REPORT_FILE" 2>/dev/null || echo 0)
-            if [[ "$FALLBACK_LINES" -gt 0 ]]; then
+            LINES=$(wc -l < "$REPORT_FILE" 2>/dev/null || echo 0)
+            if [[ "$LINES" -gt 0 ]]; then
               SCAN_SUCCESS=true
+              USED_MODEL="$MODEL"
+              echo "::notice::Scan succeeded with model: $MODEL (no -s)"
+              break
             fi
+
+            echo "::warning::Model '$MODEL' produced no output, trying next..."
+          done
+
+          if [[ "$SCAN_SUCCESS" != "true" ]]; then
+            echo "::error::All models failed to produce output. Tried: ${MODELS_TO_TRY[*]}"
+            {
+              echo "## CSI Scan Failed"
+              echo ""
+              echo "No model produced usable output."
+              echo "Models tried: ${MODELS_TO_TRY[*]}"
+              echo ""
+              echo "See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+            } > "$REPORT_FILE"
           fi
 
           # Strip preamble before first markdown heading
@@ -440,15 +483,6 @@ jobs:
           fi
 
           REPORT_LINES=$(wc -l < "$REPORT_FILE" 2>/dev/null || echo 0)
-
-          if [[ "$SCAN_SUCCESS" != "true" ]] && [[ "$REPORT_LINES" -lt 5 ]]; then
-            {
-              echo "## CSI Scan Failed"
-              echo ""
-              echo "The scan was unable to complete."
-              echo "See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
-            } > "$REPORT_FILE"
-          fi
 
           echo "scan_success=$SCAN_SUCCESS" >> "$GITHUB_OUTPUT"
           echo "report_file=$REPORT_FILE" >> "$GITHUB_OUTPUT"

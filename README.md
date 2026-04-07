@@ -120,7 +120,7 @@ stale_pr_days: 3
 # LLM backend: "copilot" (scan + fix) or "openai" (scan only)
 backend: copilot
 
-# Override model (leave empty to use the workflow default)
+# Override model (leave empty to auto-select from the preference list)
 # model: "gpt-5.4"
 
 # Scan timeout in seconds
