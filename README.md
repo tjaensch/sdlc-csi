@@ -58,6 +58,14 @@ CSI needs an LLM backend. Choose one:
 - Value: Your OpenAI API key
 - Set `backend: openai` in `.csi.yml`
 
+**Optional — Enable workflow file edits:**
+
+By default, `GITHUB_TOKEN` cannot push changes to `.github/workflows/` (GitHub platform restriction). To allow CSI to fix workflow files too:
+
+- Create a fine-grained PAT with **Contents: Read and write** + **Workflows: Read and write** scopes
+- Add it as a secret named `CSI_PAT`
+- CSI will automatically detect it and use it for push and PR creation
+
 ### 3. Enable PR Creation
 
 CSI creates pull requests via GitHub Actions. You must enable this in your repo:

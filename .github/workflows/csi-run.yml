@@ -120,13 +120,25 @@ jobs:
           echo "exclude_paths=$EXCLUDE_PATHS" >> "$GITHUB_OUTPUT"
           echo "custom_rules=$CUSTOM_RULES" >> "$GITHUB_OUTPUT"
 
+      # ── Detect token capabilities ──────────────────────────────────
+      - name: Detect push token
+        id: token
+        run: |
+          if [[ -n "${{ secrets.CSI_PAT }}" ]]; then
+            echo "has_pat=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::CSI_PAT detected — workflow file edits enabled."
+          else
+            echo "has_pat=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No CSI_PAT — using GITHUB_TOKEN (workflow file edits excluded)."
+          fi
+
       # ── Re-checkout on configured base branch ────────────────────────
       - name: Checkout base branch
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.config.outputs.base_branch }}
           fetch-depth: 0
-          token: ${{ github.token }}
+          token: ${{ steps.token.outputs.has_pat == 'true' && secrets.CSI_PAT || github.token }}
           persist-credentials: false
 
       # ── Set branch name ──────────────────────────────────────────────
@@ -237,7 +249,7 @@ jobs:
           fi)
 
           CRITICAL RULES:
-          - NEVER edit files under .github/workflows/ — those changes cannot be committed. Report workflow issues but fix something else instead.
+          $(if [[ "${{ steps.token.outputs.has_pat }}" != "true" ]]; then echo "- NEVER edit files under .github/workflows/ — the workflow token cannot push workflow file changes. Report workflow issues but fix something else instead."; fi)
           - NEVER delete files without replacement
           - NEVER modify secrets, tokens, or authentication steps
           - NEVER change workflow triggers (on: blocks)
@@ -490,17 +502,31 @@ jobs:
       - name: Check for changes
         if: steps.existing.outputs.skip != 'true'
         id: changes
+        env:
+          HAS_PAT: ${{ steps.token.outputs.has_pat }}
         run: |
-          NON_WF_CHANGES=$(git status --short -- . ':(exclude).github/workflows' ':(exclude).github/workflows/**' || true)
-          if [ -z "$NON_WF_CHANGES" ]; then
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            if [ -n "$(git status --porcelain)" ]; then
-              echo "::notice::Only workflow files were changed (excluded from commit)."
-            else
+          if [[ "$HAS_PAT" == "true" ]]; then
+            # PAT can push workflow files — check all changes
+            ALL_CHANGES=$(git status --porcelain || true)
+            if [ -z "$ALL_CHANGES" ]; then
+              echo "has_changes=false" >> "$GITHUB_OUTPUT"
               echo "::notice::No files were changed. Repository is in good health."
+            else
+              echo "has_changes=true" >> "$GITHUB_OUTPUT"
             fi
           else
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            # GITHUB_TOKEN — exclude workflow files
+            NON_WF_CHANGES=$(git status --short -- . ':(exclude).github/workflows' ':(exclude).github/workflows/**' || true)
+            if [ -z "$NON_WF_CHANGES" ]; then
+              echo "has_changes=false" >> "$GITHUB_OUTPUT"
+              if [ -n "$(git status --porcelain)" ]; then
+                echo "::notice::Only workflow files were changed (excluded from commit)."
+              else
+                echo "::notice::No files were changed. Repository is in good health."
+              fi
+            else
+              echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
       # ── Commit and push ──────────────────────────────────────────────
@@ -512,18 +538,25 @@ jobs:
           && inputs.dry_run != true
         env:
           BRANCH_NAME: ${{ steps.branch.outputs.name }}
-          PUSH_TOKEN: ${{ github.token }}
+          PUSH_TOKEN: ${{ steps.token.outputs.has_pat == 'true' && secrets.CSI_PAT || github.token }}
+          HAS_PAT: ${{ steps.token.outputs.has_pat }}
         run: |
           set -euo pipefail
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add -A -- . ':!.github/workflows' ':!.github/workflows/**'
-          git reset --quiet HEAD -- .github/workflows .github/workflows/** 2>/dev/null || true
+          if [[ "$HAS_PAT" == "true" ]]; then
+            # PAT can push workflow files — stage everything
+            git add -A
+          else
+            # GITHUB_TOKEN — exclude workflow files
+            git add -A -- . ':!.github/workflows' ':!.github/workflows/**'
+            git reset --quiet HEAD -- .github/workflows .github/workflows/** 2>/dev/null || true
+          fi
 
           if git diff --cached --quiet; then
-            echo "::notice::Only workflow changes detected (excluded). Skipping commit."
+            echo "::notice::No committable changes. Skipping commit."
             exit 0
           fi
 
@@ -549,7 +582,7 @@ jobs:
           && steps.changes.outputs.has_changes == 'true'
           && inputs.dry_run != true
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.token.outputs.has_pat == 'true' && secrets.CSI_PAT || github.token }}
           BRANCH_NAME: ${{ steps.branch.outputs.name }}
           BASE_BRANCH: ${{ steps.config.outputs.base_branch }}
           REPORT_FILE: ${{ steps.scan.outputs.report_file }}
