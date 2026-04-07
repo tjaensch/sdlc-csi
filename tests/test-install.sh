@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# ────────────────────────────────────────────────────────────────────────────
+# test-install.sh — Validate the CSI installer and uninstaller
+# ────────────────────────────────────────────────────────────────────────────
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TEST_DIR="$(mktemp -d)"
+PASS=0
+FAIL=0
+
+cleanup() {
+  rm -rf "$TEST_DIR"
+}
+trap cleanup EXIT
+
+assert_file_exists() {
+  if [[ -f "$1" ]]; then
+    PASS=$((PASS + 1))
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: Expected file to exist: $1"
+  fi
+}
+
+assert_file_not_exists() {
+  if [[ ! -f "$1" ]]; then
+    PASS=$((PASS + 1))
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: Expected file to NOT exist: $1"
+  fi
+}
+
+assert_file_contains() {
+  if grep -q "$2" "$1" 2>/dev/null; then
+    PASS=$((PASS + 1))
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: Expected '$1' to contain '$2'"
+  fi
+}
+
+# ── Test 1: Fresh install ─────────────────────────────────────────────────
+echo "Test 1: Fresh install with defaults"
+REPO1="$TEST_DIR/repo1"
+mkdir -p "$REPO1" && cd "$REPO1" && git init -q
+
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1"
+
+assert_file_exists "$REPO1/.csi.yml"
+assert_file_exists "$REPO1/.github/workflows/csi-run.yml"
+assert_file_exists "$REPO1/.github/agents/csi-maintainer.agent.md"
+assert_file_exists "$REPO1/.github/scripts/install-copilot-cli.sh"
+assert_file_exists "$REPO1/.github/scripts/sanitize-report.sh"
+assert_file_exists "$REPO1/.github/scripts/openai-scan.py"
+assert_file_exists "$REPO1/.github/rulesets/generic.md"
+assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
+assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
+echo ""
+
+# ── Test 2: Idempotency — .csi.yml preserved ─────────────────────────────
+echo "Test 2: Re-install preserves .csi.yml"
+echo "# custom comment" >> "$REPO1/.csi.yml"
+
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1"
+
+assert_file_contains "$REPO1/.csi.yml" "# custom comment"
+echo ""
+
+# ── Test 3: Install with rulesets and options ─────────────────────────────
+echo "Test 3: Install with rulesets and custom options"
+REPO2="$TEST_DIR/repo2"
+mkdir -p "$REPO2" && cd "$REPO2" && git init -q
+
+bash "$SCRIPT_DIR/install.sh" \
+  --repo-path "$REPO2" \
+  --rulesets "python,javascript" \
+  --backend "openai" \
+  --branch "develop" \
+  --schedule "0 8 * * *"
+
+assert_file_exists "$REPO2/.github/rulesets/python.md"
+assert_file_exists "$REPO2/.github/rulesets/javascript.md"
+assert_file_contains "$REPO2/.csi.yml" "backend: openai"
+assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
+echo ""
+
+# ── Test 4: Uninstall preserves config ────────────────────────────────────
+echo "Test 4: Uninstall preserves .csi.yml"
+
+bash "$SCRIPT_DIR/uninstall.sh" --repo-path "$REPO1"
+
+assert_file_exists "$REPO1/.csi.yml"
+assert_file_not_exists "$REPO1/.github/workflows/csi-run.yml"
+assert_file_not_exists "$REPO1/.github/agents/csi-maintainer.agent.md"
+assert_file_not_exists "$REPO1/.github/scripts/install-copilot-cli.sh"
+echo ""
+
+# ── Test 5: Uninstall with --remove-config ────────────────────────────────
+echo "Test 5: Uninstall with --remove-config"
+
+bash "$SCRIPT_DIR/uninstall.sh" --repo-path "$REPO2" --remove-config
+
+assert_file_not_exists "$REPO2/.csi.yml"
+echo ""
+
+# ── Test 6: Non-git directory should fail ─────────────────────────────────
+echo "Test 6: Reject non-git directory"
+NON_GIT="$TEST_DIR/not-a-repo"
+mkdir -p "$NON_GIT"
+
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$NON_GIT" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected non-git directory"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
+# ── Results ───────────────────────────────────────────────────────────────
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Results: $PASS passed, $FAIL failed"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+if [[ "$FAIL" -gt 0 ]]; then
+  exit 1
+fi

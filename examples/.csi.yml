@@ -1,0 +1,70 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .csi.yml — Continuous Self-Improvement configuration
+# ─────────────────────────────────────────────────────────────────────────────
+# Place this file in the root of your repository to configure CSI behavior.
+# All fields have sensible defaults — only override what you need.
+#
+# Documentation: https://github.com/tjaensch/csi#configuration
+# ─────────────────────────────────────────────────────────────────────────────
+version: 1
+
+# ── Schedule ──────────────────────────────────────────────────────────────
+# Cron expression for automated scans (UTC). Default: weekly Monday 10:00 UTC.
+# Set to empty string "" to disable scheduled runs (manual dispatch only).
+schedule: "0 10 * * 1"
+
+# ── Branch settings ───────────────────────────────────────────────────────
+# Branch to base CSI fix branches on, and the PR target.
+base_branch: main
+
+# How many days before an unmerged CSI PR is automatically closed.
+stale_pr_days: 3
+
+# ── LLM Backend ──────────────────────────────────────────────────────────
+# "copilot" — GitHub Copilot CLI (requires COPILOT_TOKEN secret)
+# "openai"  — OpenAI API (requires OPENAI_API_KEY secret; scan-only, no auto-fix)
+backend: copilot
+
+# Override the LLM model. Leave empty for default routing.
+# Examples: "gpt-4o", "claude-sonnet-4", "gpt-5.4"
+model: ""
+
+# Maximum time in seconds for the scan (default: 900 = 15 min).
+timeout: 900
+
+# ── Scan categories ──────────────────────────────────────────────────────
+# Toggle individual scan categories on or off.
+scan:
+  categories:
+    dry_violations: true
+    documentation_drift: true
+    tooling_currency: true
+    dead_code: true
+    code_quality: true
+    security_hygiene: true
+    dependency_health: true
+    config_consistency: true
+
+  # Glob patterns for paths to exclude from scanning.
+  exclude_paths:
+    - "vendor/**"
+    - "node_modules/**"
+    - "dist/**"
+    - ".git/**"
+
+# ── Rulesets ─────────────────────────────────────────────────────────────
+# Which language-aware rule packs to apply alongside the always-included
+# "generic" ruleset. Available: python, javascript, dotnet, nextflow
+rulesets: []
+  # - python
+  # - javascript
+  # - dotnet
+  # - nextflow
+
+# ── Custom rules ─────────────────────────────────────────────────────────
+# Add repo-specific rules that the agent should check for.
+# Each entry is a free-text instruction the agent will incorporate.
+custom_rules: []
+  # - "All Python files must use type hints for function signatures"
+  # - "Every module must have a README.md"
+  # - "Docker images must not use the :latest tag"
