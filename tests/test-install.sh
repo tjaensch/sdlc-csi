@@ -100,8 +100,13 @@ echo ""
 # ── Test 5: Uninstall with --remove-config ────────────────────────────────
 echo "Test 5: Uninstall with --remove-config"
 
+mkdir -p "$REPO2/.github/rulesets"
+echo "# custom ruleset" > "$REPO2/.github/rulesets/my-custom-rules.md"
+
 bash "$SCRIPT_DIR/uninstall.sh" --repo-path "$REPO2" --remove-config
 
+assert_file_exists "$REPO2/.github/rulesets/my-custom-rules.md"
+assert_file_not_exists "$REPO2/.github/rulesets/generic.md"
 assert_file_not_exists "$REPO2/.csi.yml"
 echo ""
 
