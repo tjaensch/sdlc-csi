@@ -87,6 +87,12 @@ copy_file() {
     return 0
   fi
 
+  # Skip if source and destination are the same file (self-install case)
+  if [[ "$(realpath "$src" 2>/dev/null)" == "$(realpath "$dst" 2>/dev/null)" ]]; then
+    echo "   ⏭ Same file (skip): $dst"
+    return 0
+  fi
+
   cp "$src" "$dst"
   echo "   ✓ Installed: $dst"
 }
