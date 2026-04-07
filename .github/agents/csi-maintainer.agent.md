@@ -55,9 +55,10 @@ This agent is designed to run on a recurring schedule via CI. Each invocation pr
 
 These constraints override all other behavior:
 
-1. **DO NOT** delete any file unless replacing it with an equivalent or better version.
-2. **DO NOT** modify GitHub Actions secrets, tokens, or authentication steps.
-3. **DO NOT** change workflow trigger conditions (`on:` blocks) — schedule, event types, or branch filters.
+1. **DO NOT** edit any file under `.github/workflows/` — the workflow token cannot push workflow file changes. If a workflow file needs fixing, report it in "Remaining Issues" but select a different issue to fix.
+2. **DO NOT** delete any file unless replacing it with an equivalent or better version.
+3. **DO NOT** modify GitHub Actions secrets, tokens, or authentication steps.
+4. **DO NOT** change workflow trigger conditions (`on:` blocks) — schedule, event types, or branch filters.
 4. **DO NOT** alter security-sensitive configurations (permissions, OIDC, App tokens).
 5. **DO NOT** modify `.gitignore` to exclude tracked files.
 6. **DO NOT** make breaking changes to public interfaces (API signatures, config schemas, CLI arguments).

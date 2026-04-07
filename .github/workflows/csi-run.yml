@@ -65,6 +65,9 @@ jobs:
             echo "model=" >> "$GITHUB_OUTPUT"
             echo "timeout=900" >> "$GITHUB_OUTPUT"
             echo "rulesets=" >> "$GITHUB_OUTPUT"
+            echo "categories=dry_violations,documentation_drift,tooling_currency,dead_code,code_quality,security_hygiene,dependency_health,config_consistency" >> "$GITHUB_OUTPUT"
+            echo "exclude_paths=vendor/**,node_modules/**,dist/**,.git/**" >> "$GITHUB_OUTPUT"
+            echo "custom_rules=" >> "$GITHUB_OUTPUT"
             echo "has_config=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -234,6 +237,7 @@ jobs:
           fi)
 
           CRITICAL RULES:
+          - NEVER edit files under .github/workflows/ — those changes cannot be committed. Report workflow issues but fix something else instead.
           - NEVER delete files without replacement
           - NEVER modify secrets, tokens, or authentication steps
           - NEVER change workflow triggers (on: blocks)
