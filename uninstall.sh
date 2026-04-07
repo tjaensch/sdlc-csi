@@ -15,6 +15,7 @@
 # ────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_PATH="."
 REMOVE_CONFIG=false
 
@@ -43,9 +44,24 @@ echo ""
 remove_file() {
   local path="$1"
   if [[ -f "$path" ]]; then
-    rm "$path"
+    rm -f -- "$path"
     echo "   ✓ Removed: $path"
   fi
+}
+
+remove_installed_rulesets() {
+  local rulesets_dir="$REPO_PATH/.github/rulesets"
+  local bundled_rulesets_dir="$SCRIPT_DIR/rulesets"
+
+  if [[ ! -d "$rulesets_dir" || ! -d "$bundled_rulesets_dir" ]]; then
+    return 0
+  fi
+
+  local ruleset_name
+  for ruleset_path in "$bundled_rulesets_dir"/*.md; do
+    ruleset_name="$(basename "$ruleset_path")"
+    remove_file "$rulesets_dir/$ruleset_name"
+  done
 }
 
 remove_dir_if_empty() {
@@ -63,11 +79,8 @@ remove_file "$REPO_PATH/.github/scripts/install-copilot-cli.sh"
 remove_file "$REPO_PATH/.github/scripts/sanitize-report.sh"
 remove_file "$REPO_PATH/.github/scripts/openai-scan.py"
 
-# Remove rulesets
-if [[ -d "$REPO_PATH/.github/rulesets" ]]; then
-  rm -rf "$REPO_PATH/.github/rulesets"
-  echo "   ✓ Removed: $REPO_PATH/.github/rulesets/"
-fi
+# Remove bundled rulesets without touching user-authored files
+remove_installed_rulesets
 
 # Optionally remove config
 if [[ "$REMOVE_CONFIG" == "true" ]]; then
@@ -80,6 +93,7 @@ fi
 # Clean up empty directories
 remove_dir_if_empty "$REPO_PATH/.github/agents"
 remove_dir_if_empty "$REPO_PATH/.github/scripts"
+remove_dir_if_empty "$REPO_PATH/.github/rulesets"
 
 echo ""
 echo "✅ CSI uninstalled."
