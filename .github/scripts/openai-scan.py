@@ -142,7 +142,7 @@ def main() -> None:
         No repository files were modified.
 
         ### Evidence
-        OpenAI backend is scan-only; findings are reported below with file paths, line numbers, or command outputs.
+        OpenAI backend is scan-only; issues are reported below in Remaining Issues with file paths, line numbers, or command outputs.
 
         ### Verification
         No file edits were applied.
