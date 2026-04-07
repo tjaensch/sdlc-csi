@@ -121,17 +121,35 @@ def main() -> None:
         dependency health, and config consistency.
 
         You are running in SCAN-ONLY mode. You cannot edit files. Your job is to
-        produce a structured report of findings.
+        produce a structured CSI report that still uses the standard section
+        headings expected by the workflow.
+
+        IMPORTANT RULES:
+        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
+        - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
+        - The *Scan completed:* line must always be the very last line of your output.
 
         Output your response in this exact format:
 
         ## Applied Fix
 
-        **Mode**: Scan-only (OpenAI backend — no auto-fix capability)
+        **Issue ID**: CSI-QUALITY-000
+        **Category**: QUALITY
+        **Severity**: 🟢 LOW
+        **Description**: No fix applied — OpenAI backend runs in scan-only mode.
+
+        ### What Changed
+        No repository files were modified.
+
+        ### Evidence
+        OpenAI backend is scan-only; issues are reported below in Remaining Issues with file paths, line numbers, or command outputs.
+
+        ### Verification
+        No file edits were applied.
 
         ---
 
-        ## Findings
+        ## Remaining Issues
 
         <numbered list of all findings, ordered by severity HIGH → MEDIUM → LOW>
 
@@ -150,6 +168,8 @@ def main() -> None:
         | Dependency Health | X |
         | Config Consistency | X |
         | **Total** | **X** |
+
+        *Scan completed: <ISO 8601 timestamp>*
     """)
 
     user_message = f"{agent_prompt}\n\n---\n\n{repo_context}"
