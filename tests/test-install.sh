@@ -107,6 +107,8 @@ bash "$SCRIPT_DIR/uninstall.sh" --repo-path "$REPO2" --remove-config
 
 assert_file_exists "$REPO2/.github/rulesets/my-custom-rules.md"
 assert_file_not_exists "$REPO2/.github/rulesets/generic.md"
+assert_file_not_exists "$REPO2/.github/rulesets/python.md"
+assert_file_not_exists "$REPO2/.github/rulesets/javascript.md"
 assert_file_not_exists "$REPO2/.csi.yml"
 echo ""
 

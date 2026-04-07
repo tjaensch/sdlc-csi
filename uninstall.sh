@@ -44,7 +44,7 @@ echo ""
 remove_file() {
   local path="$1"
   if [[ -f "$path" ]]; then
-    rm "$path"
+    rm -f -- "$path"
     echo "   ✓ Removed: $path"
   fi
 }
