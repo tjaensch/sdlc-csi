@@ -98,22 +98,27 @@ def build_scan_failure_report(error_message: str) -> str:
 
     return textwrap.dedent(
         f"""\
-        ## Scan Results
+        ## Applied Fix
 
-        **Status**: ❌ SCAN FAILED
+        **Issue ID**: CSI-CONFIG-001
+        **Category**: CONFIG
+        **Severity**: 🔴 HIGH
         **Description**: OpenAI scan backend could not complete.
 
-        ### Details
-        `{normalized_error}`
+        ### What Changed
+        No files were modified. OpenAI runs in scan-only mode, and this invocation failed before it could produce findings.
 
-        ### Next Steps
-        Retry the scan after resolving the issue described above.
+        ### Evidence
+        `.github/scripts/openai-scan.py` fallback report: `{normalized_error}`
+
+        ### Verification
+        Re-run the scan after resolving the backend error shown above.
 
         ---
 
         ## Remaining Issues
 
-        1. **[CONFIG] 🔴 HIGH**: OpenAI scan backend could not complete — `{normalized_error}`
+        1. **[CONFIG] 🔴 HIGH**: OpenAI scan backend could not complete — `.github/scripts/openai-scan.py:92-135`
 
         ---
 
@@ -195,18 +200,27 @@ def main() -> None:
         headings expected by the workflow.
 
         IMPORTANT RULES:
-        - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary) even if no issues are found.
+        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
         - The *Scan completed:* line must always be the very last line of your output.
 
         Output your response in this exact format:
 
-        ## Scan Results
+        ## Applied Fix
 
-        **Mode**: Scan Only (no auto-fix)
-        **Backend**: OpenAI
+        **Issue ID**: None
+        **Category**: None
+        **Severity**: None
+        **Description**: No issues found requiring a fix.
 
-        This is a scan-only report. No files were modified. All findings are listed below under Remaining Issues with file paths, line numbers, and evidence.
+        ### What Changed
+        No files were modified. This is a scan-only report from the OpenAI backend.
+
+        ### Evidence
+        Summarize the evidence for the highest-priority finding, or state that no issues were found.
+
+        ### Verification
+        Briefly explain how the finding can be verified, or state that no changes were required.
 
         ---
 
