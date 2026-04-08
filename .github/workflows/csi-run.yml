@@ -131,8 +131,10 @@ jobs:
       # ── Detect token capabilities ──────────────────────────────────
       - name: Detect push token
         id: token
+        env:
+          CSI_PAT: ${{ secrets.CSI_PAT }}
         run: |
-          if [[ -n "${{ secrets.CSI_PAT }}" ]]; then
+          if [[ -n "${CSI_PAT:-}" ]]; then
             echo "has_pat=true" >> "$GITHUB_OUTPUT"
             if [[ "${{ steps.config.outputs.backend }}" != "openai" ]]; then
               echo "::notice::CSI_PAT detected — workflow file edits enabled."
