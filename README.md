@@ -88,6 +88,8 @@ git push
 gh workflow run csi-run.yml -f dry_run=true
 ```
 
+> **Need more detail?** See the full [Setup Guide](docs/SETUP.md) for step-by-step instructions on tokens, permissions, and troubleshooting.
+
 ## What It Scans
 
 | Category | Examples |
