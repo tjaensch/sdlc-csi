@@ -212,7 +212,10 @@ def main() -> None:
 
         ## Remaining Issues
 
-        <numbered list of all findings, ordered by severity HIGH → MEDIUM → LOW>
+        <numbered list of all findings, ordered by severity HIGH → MEDIUM → LOW, each in this exact format:>
+        1. **[CATEGORY] 🔴 HIGH**: Description — `file:line` evidence
+        2. **[CATEGORY] 🟡 MEDIUM**: Description — `file:line` evidence
+        3. **[CATEGORY] 🟢 LOW**: Description — `file:line` evidence
 
         ---
 
