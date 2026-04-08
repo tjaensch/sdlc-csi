@@ -130,6 +130,8 @@ WORKFLOW_DST_REAL="$(realpath "$WORKFLOW_DST" 2>/dev/null || true)"
 if [[ ("$FORCE" == "true" || "$WORKFLOW_PREEXISTED" == "false") \
       && "$WORKFLOW_SRC_REAL" != "$WORKFLOW_DST_REAL" ]]; then
   tmp_workflow="$(mktemp)"
+  # Preserve original file permissions after rewrite
+  chmod --reference="$WORKFLOW_DST" "$tmp_workflow" 2>/dev/null || true
   awk -v schedule="$SCHEDULE" '
     /^    - cron:/ {
       # Detect and preserve trailing CR (CRLF files)
