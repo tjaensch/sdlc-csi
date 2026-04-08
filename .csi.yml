@@ -54,8 +54,8 @@ scan:
 
 # ── Rulesets ─────────────────────────────────────────────────────────────
 # Which language-aware rule packs to apply alongside the always-included
-# "generic" ruleset. Available: python, javascript, java, go, rust, ruby,
-# kotlin, swift, php, terraform, docker, dotnet, nextflow
+# "generic" ruleset. Available: bash, powershell, python, javascript, java,
+# go, rust, ruby, kotlin, swift, php, terraform, docker, dotnet, nextflow
 rulesets: []
   # - python
   # - javascript
