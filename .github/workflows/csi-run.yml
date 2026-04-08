@@ -1,5 +1,5 @@
 name: "CSI - Run"
-run-name: "CSI — ${{ inputs.dry_run == true && '🔍 Dry Run' || '🔧 Scan & Fix' }}"
+run-name: "CSI — ${{ inputs.dry_run == true && '🔍 Dry Run' || '🔧 Scan' }}"
 
 # ── Model preference list ──────────────────────────────────────────────
 # Ordered list of models known to reliably invoke the editFiles tool.
@@ -38,10 +38,10 @@ on:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────
-  # Job 1: Scan repository and apply one targeted fix
+  # Job 1: Scan repository and optionally apply one targeted fix
   # ─────────────────────────────────────────────────────────────────────────
   scan-and-fix:
-    name: Scan & Fix
+    name: CSI Scan
     runs-on: ubuntu-latest
     permissions:
       contents: write
