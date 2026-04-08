@@ -530,6 +530,7 @@ jobs:
         id: scan
         run: |
           BACKEND="${{ steps.config.outputs.backend }}"
+          echo "::notice::LLM backend: ${BACKEND}"
           if [[ "$BACKEND" == "copilot" ]]; then
             echo "scan_success=${{ steps.scan_copilot.outputs.scan_success }}" >> "$GITHUB_OUTPUT"
             echo "report_file=${{ steps.scan_copilot.outputs.report_file }}" >> "$GITHUB_OUTPUT"
