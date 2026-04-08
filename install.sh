@@ -46,7 +46,24 @@ while [[ $# -gt 0 ]]; do
     --force)
       FORCE=true; shift ;;
     --help|-h)
-      sed -n '5,19p' "$0"
+      cat <<'HELPEOF'
+Install CSI (Continuous Self-Improvement) into a repository.
+
+Copies the CSI workflow, agent, and helper scripts into the target repo.
+Creates a .csi.yml config file from a template if one doesn't already exist.
+
+Usage:
+  install.sh [OPTIONS]
+
+Options:
+  --repo-path <path>       Target repository root (default: current directory)
+  --rulesets <list>         Comma-separated rulesets to enable (e.g., "python,javascript")
+  --backend <name>         LLM backend: "copilot" or "openai" (default: copilot)
+  --branch <name>          Base branch for PRs (default: main)
+  --schedule <cron>        Cron schedule for automated scans (default: "0 10 * * 1")
+  --force                  Overwrite existing CSI files (except .csi.yml)
+  --help                   Show this help message
+HELPEOF
       exit 0
       ;;
     *)

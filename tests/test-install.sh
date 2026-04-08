@@ -57,11 +57,19 @@ assert_output_not_contains() {
   local output="$1"
   local unexpected="$2"
 
-  if grep -Fq -- "$unexpected" <<< "$output"; then
+  local rc=0
+  grep -Fq -- "$unexpected" <<< "$output" || rc=$?
+  if [[ $rc -eq 1 ]]; then
+    # exit 1 = not found — pass
+    PASS=$((PASS + 1))
+  elif [[ $rc -eq 0 ]]; then
+    # exit 0 = found — fail
     FAIL=$((FAIL + 1))
     echo "  FAIL: Expected output to NOT contain '$unexpected'"
   else
-    PASS=$((PASS + 1))
+    # exit 2+ = grep error — fail with diagnostic
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: grep error (exit $rc) while checking for '$unexpected'"
   fi
 }
 
@@ -140,8 +148,8 @@ echo ""
 echo "Test 6: Install help output"
 INSTALL_HELP_OUTPUT="$(bash "$SCRIPT_DIR/install.sh" --help)"
 
-assert_output_contains "$INSTALL_HELP_OUTPUT" "# Usage:"
-assert_output_contains "$INSTALL_HELP_OUTPUT" "#   --schedule <cron>        Cron schedule for automated scans"
+assert_output_contains "$INSTALL_HELP_OUTPUT" "Usage:"
+assert_output_contains "$INSTALL_HELP_OUTPUT" "--schedule <cron>"
 assert_output_not_contains "$INSTALL_HELP_OUTPUT" "set -euo pipefail"
 echo ""
 
