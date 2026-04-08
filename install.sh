@@ -129,7 +129,8 @@ WORKFLOW_SRC_REAL="$(realpath "$SCRIPT_DIR/.github/workflows/csi-run.yml" 2>/dev
 WORKFLOW_DST_REAL="$(realpath "$WORKFLOW_DST" 2>/dev/null || true)"
 if [[ ("$FORCE" == "true" || "$WORKFLOW_PREEXISTED" == "false") \
       && "$WORKFLOW_SRC_REAL" != "$WORKFLOW_DST_REAL" ]]; then
-  tmp_workflow="$(mktemp)"
+  # Create temp file in same directory for atomic same-device rename
+  tmp_workflow="$(mktemp "$(dirname "$WORKFLOW_DST")/.csi-tmp.XXXXXX")"
   # Preserve original file permissions after rewrite
   chmod --reference="$WORKFLOW_DST" "$tmp_workflow" 2>/dev/null || true
   awk -v schedule="$SCHEDULE" '
