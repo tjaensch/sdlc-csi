@@ -258,7 +258,7 @@ CSI is designed with defense-in-depth:
 
 - **Isolated authentication** — LLM credentials are scoped to the scan step via an isolated config directory and are not persisted
 - **Report sanitization** — All tokens, API keys, and auth headers are automatically redacted before appearing in PR descriptions or job summaries
-- **Workflow file protection** — Changes to `.github/workflows/` are excluded from commits (GITHUB_TOKEN cannot push workflow changes)
+- **Workflow file protection** — Without `CSI_PAT`, changes to `.github/workflows/` are excluded from commits; when `CSI_PAT` is configured, workflow file edits can be included safely
 - **Safety constraints** — The agent is instructed to never delete files without replacement, never modify secrets/triggers/permissions, and keep all changes backward-compatible
 - **Stale PR cleanup** — Unmerged PRs are automatically closed to prevent clutter
 
