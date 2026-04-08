@@ -146,18 +146,24 @@ def main() -> None:
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
         print("::error::OPENAI_API_KEY environment variable is not set", file=sys.stderr)
+        report = build_scan_failure_report("OPENAI_API_KEY environment variable is not set")
+        Path(args.output).write_text(report, encoding="utf-8")
         sys.exit(1)
 
     try:
         from openai import OpenAI
     except ImportError:
         print("::error::openai package not installed. Run: pip install openai>=1.0.0", file=sys.stderr)
+        report = build_scan_failure_report("openai package not installed. Run: pip install openai>=1.0.0")
+        Path(args.output).write_text(report, encoding="utf-8")
         sys.exit(1)
 
     # Read the prompt
     prompt_path = Path(args.prompt_file)
     if not prompt_path.is_file():
         print(f"::error::Prompt file not found: {args.prompt_file}", file=sys.stderr)
+        report = build_scan_failure_report(f"Prompt file not found: {args.prompt_file}")
+        Path(args.output).write_text(report, encoding="utf-8")
         sys.exit(1)
 
     agent_prompt = prompt_path.read_text(encoding="utf-8")
