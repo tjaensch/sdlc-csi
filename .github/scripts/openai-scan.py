@@ -98,7 +98,7 @@ def build_scan_failure_report(error_message: str) -> str:
 
     return textwrap.dedent(
         f"""\
-        ## Applied Fix
+        ## Scan Results
 
         **Issue ID**: CSI-CONFIG-001
         **Category**: CONFIG
@@ -189,47 +189,56 @@ def main() -> None:
     # Gather repo context (since OpenAI can't browse files)
     repo_context = get_repo_context()
 
-    system_message = textwrap.dedent("""\
+    scan_timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    system_message = textwrap.dedent(f"""\
         You are a repository maintenance scanner. You analyze codebases for
         maintenance issues across these categories: DRY violations, documentation
         drift, tooling currency, dead code, code quality, security hygiene,
         dependency health, and config consistency.
 
         You are running in SCAN-ONLY mode. You cannot edit files. Your job is to
-        produce a structured CSI report that still uses the standard section
-        headings expected by the workflow.
+        produce a structured report of your findings.
 
         IMPORTANT RULES:
-        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
+        - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary).
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
+        - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
+        - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
+        - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
 
-        Output your response in this exact format:
+        Output your response in this EXACT format (do not deviate):
 
-        ## Applied Fix
+        ## Scan Results
 
-        **Issue ID**: None
-        **Category**: None
-        **Severity**: None
-        **Description**: No issues found requiring a fix.
+        **Issue ID**: <ID or None>
+        **Category**: <category or None>
+        **Severity**: <🔴 HIGH, 🟡 MEDIUM, 🟢 LOW, or None>
+        **Description**: <one-line summary of the highest-priority finding, or "No issues found.">
 
         ### What Changed
         No files were modified. This is a scan-only report from the OpenAI backend.
 
         ### Evidence
-        Summarize the evidence for the highest-priority finding, or state that no issues were found.
+        <Summarize the evidence for the highest-priority finding, or state that no issues were found.>
 
         ### Verification
-        Briefly explain how the finding can be verified, or state that no changes were required.
+        <How to verify the finding, or state no changes were required.>
 
         ---
 
         ## Remaining Issues
 
-        <numbered list of all findings, ordered by severity HIGH → MEDIUM → LOW, each in this exact format:>
-        1. **[CATEGORY] 🔴 HIGH**: Description — `file:line` evidence
-        2. **[CATEGORY] 🟡 MEDIUM**: Description — `file:line` evidence
-        3. **[CATEGORY] 🟢 LOW**: Description — `file:line` evidence
+        <numbered list of ALL findings, ordered by severity HIGH → MEDIUM → LOW>
+        <EACH item MUST follow this EXACT format — note the square brackets:>
+        1. **[CATEGORY_NAME] 🔴 HIGH**: Description — `file:line` evidence
+        2. **[CATEGORY_NAME] 🟡 MEDIUM**: Description — `file:line` evidence
+        3. **[CATEGORY_NAME] 🟢 LOW**: Description — `file:line` evidence
+
+        Valid CATEGORY_NAME values (use these exactly, in square brackets):
+        DRY_VIOLATIONS, DOCUMENTATION_DRIFT, TOOLING_CURRENCY, DEAD_CODE,
+        CODE_QUALITY, SECURITY_HYGIENE, DEPENDENCY_HEALTH, CONFIG_CONSISTENCY
 
         ---
 
@@ -247,7 +256,7 @@ def main() -> None:
         | Config Consistency | X |
         | **Total** | **X** |
 
-        *Scan completed: <ISO 8601 timestamp>*
+        *Scan completed: {scan_timestamp}*
     """)
 
     user_message = f"{agent_prompt}\n\n---\n\n{repo_context}"
