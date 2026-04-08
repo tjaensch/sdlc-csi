@@ -141,6 +141,7 @@ scan:
     - "vendor/**"
     - "node_modules/**"
     - "dist/**"
+    - ".git/**"
 
 # Language-specific rule packs (see "Rulesets" below)
 rulesets: []
