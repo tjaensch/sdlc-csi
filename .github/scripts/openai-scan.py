@@ -307,16 +307,24 @@ def main() -> None:
     client = OpenAI(api_key=api_key)
 
     try:
-        response = client.chat.completions.create(
+        # Build API kwargs — reasoning models (o1, o3, etc.) don't support
+        # 'temperature' or 'max_tokens'; use 'max_completion_tokens' instead.
+        api_kwargs: dict = dict(
             model=args.model,
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message},
             ],
-            temperature=0.2,
-            max_tokens=4096,
             timeout=args.timeout,
         )
+        is_reasoning = args.model.startswith(("o1", "o3"))
+        if is_reasoning:
+            api_kwargs["max_completion_tokens"] = 16384
+        else:
+            api_kwargs["temperature"] = 0.2
+            api_kwargs["max_tokens"] = 4096
+
+        response = client.chat.completions.create(**api_kwargs)
 
         report = response.choices[0].message.content or ""
         if not report.strip():
