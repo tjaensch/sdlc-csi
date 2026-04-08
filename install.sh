@@ -29,7 +29,20 @@ while [[ $# -gt 0 ]]; do
     --branch)
       shift; BRANCH="${1:?--branch requires a branch name}"; shift ;;
     --schedule)
-      shift; SCHEDULE="${1:?--schedule requires a cron expression}"; shift ;;
+      shift; SCHEDULE="${1:?--schedule requires a cron expression}"
+      if [[ ! "$SCHEDULE" =~ ^[0-9\ \*,\-/]+$ ]]; then
+        echo "Error: --schedule contains invalid characters. Only digits, spaces, *, comma, dash, and / are allowed." >&2
+        exit 1
+      fi
+      # Require exactly 5 cron fields
+      read -ra CRON_FIELDS <<< "$SCHEDULE"
+      if [[ ${#CRON_FIELDS[@]} -ne 5 ]]; then
+        echo "Error: --schedule must have exactly 5 cron fields (minute hour day month weekday). Got ${#CRON_FIELDS[@]}." >&2
+        exit 1
+      fi
+      # Normalize whitespace (collapse multiple spaces, trim)
+      SCHEDULE="${CRON_FIELDS[*]}"
+      shift ;;
     --force)
       FORCE=true; shift ;;
     --help|-h)
@@ -111,11 +124,19 @@ WORKFLOW_PREEXISTED=false
 
 copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$WORKFLOW_DST"
 
-# Patch the schedule cron only when the workflow was installed/overwritten
-if [[ "$FORCE" == "true" || "$WORKFLOW_PREEXISTED" == "false" ]]; then
+# Patch the schedule cron only when the workflow was actually installed/overwritten
+WORKFLOW_SRC_REAL="$(realpath "$SCRIPT_DIR/.github/workflows/csi-run.yml" 2>/dev/null || true)"
+WORKFLOW_DST_REAL="$(realpath "$WORKFLOW_DST" 2>/dev/null || true)"
+if [[ ("$FORCE" == "true" || "$WORKFLOW_PREEXISTED" == "false") \
+      && "$WORKFLOW_SRC_REAL" != "$WORKFLOW_DST_REAL" ]]; then
   tmp_workflow="$(mktemp)"
   awk -v schedule="$SCHEDULE" '
-    /^    - cron:/ { print "    - cron: \047" schedule "\047"; next }
+    /^    - cron:/ {
+      # Detect and preserve trailing CR (CRLF files)
+      cr = (substr($0, length($0)) == "\r") ? "\r" : ""
+      printf "    - cron: \047%s\047%s\n", schedule, cr
+      next
+    }
     { print }
   ' "$WORKFLOW_DST" > "$tmp_workflow"
   mv "$tmp_workflow" "$WORKFLOW_DST"

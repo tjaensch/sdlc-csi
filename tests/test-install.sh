@@ -201,6 +201,34 @@ else
 fi
 echo ""
 
+# ── Test 10: Invalid schedule characters rejected ─────────────────────────
+echo "Test 10: Reject invalid --schedule characters"
+REPO_SCHED="$TEST_DIR/repo_sched"
+mkdir -p "$REPO_SCHED" && cd "$REPO_SCHED" && git init -q
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "'; echo pwned'" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with quotes"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
+# ── Test 11: Reject schedule with wrong number of fields ──────────────────
+echo "Test 11: Reject --schedule with wrong field count"
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "0 8 *" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with 3 fields"
+else
+  PASS=$((PASS + 1))
+fi
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "1" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with 1 field"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
 # ── Results ───────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Results: $PASS passed, $FAIL failed"
