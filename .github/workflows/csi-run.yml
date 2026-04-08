@@ -328,7 +328,7 @@ jobs:
         if: >-
           steps.existing.outputs.skip != 'true'
           && steps.config.outputs.backend == 'openai'
-        run: pip install openai>=1.0.0
+        run: pip install 'openai>=1.0.0'
 
       # ── Create feature branch ────────────────────────────────────────
       - name: Create feature branch
