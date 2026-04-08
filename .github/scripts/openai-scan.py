@@ -139,10 +139,11 @@ def build_scan_failure_report(error_message: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="OpenAI-backed CSI scanner")
-    parser.add_argument("--prompt-file", required=True, help="Path to the agent prompt file")
+    parser.add_argument("--prompt-file", required=False, help="Path to the agent prompt file")
     parser.add_argument("--output", required=True, help="Path to write the report")
     parser.add_argument("--model", default="gpt-4o", help="OpenAI model to use")
     parser.add_argument("--timeout", type=int, default=900, help="Timeout in seconds")
+    parser.add_argument("--fallback-report", metavar="MSG", help="Write a CSI-formatted failure report with the given error message and exit")
     args = parser.parse_args()
     output_path = Path(args.output)
 
@@ -154,22 +155,30 @@ def main() -> None:
         print(f"CSI report written: {output_path} ({line_count} lines)")
         sys.exit(exit_code)
 
+    # Fallback report mode: write a CSI-formatted failure report and exit
+    if args.fallback_report:
+        write_report_and_exit(build_scan_failure_report(args.fallback_report), exit_code=1)
+
+    if not args.prompt_file:
+        print("::error::--prompt-file is required when not using --fallback-report", file=sys.stderr)
+        write_report_and_exit(build_scan_failure_report("--prompt-file is required"), exit_code=1)
+
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
         print("::error::OPENAI_API_KEY environment variable is not set", file=sys.stderr)
-        write_report_and_exit(build_scan_failure_report("OPENAI_API_KEY environment variable is not set"))
+        write_report_and_exit(build_scan_failure_report("OPENAI_API_KEY environment variable is not set"), exit_code=1)
 
     try:
         from openai import OpenAI
     except ImportError:
         print("::error::openai package not installed. Run: pip install openai>=1.0.0", file=sys.stderr)
-        write_report_and_exit(build_scan_failure_report("openai package not installed. Run: pip install openai>=1.0.0"))
+        write_report_and_exit(build_scan_failure_report("openai package not installed. Run: pip install openai>=1.0.0"), exit_code=1)
 
     # Read the prompt
     prompt_path = Path(args.prompt_file)
     if not prompt_path.is_file():
         print(f"::error::Prompt file not found: {args.prompt_file}", file=sys.stderr)
-        write_report_and_exit(build_scan_failure_report(f"Prompt file not found: {args.prompt_file}"))
+        write_report_and_exit(build_scan_failure_report(f"Prompt file not found: {args.prompt_file}"), exit_code=1)
 
     agent_prompt = prompt_path.read_text(encoding="utf-8")
 
@@ -257,6 +266,7 @@ def main() -> None:
     except Exception as exc:
         report = build_scan_failure_report(str(exc))
         print(f"::error::OpenAI API error: {exc}", file=sys.stderr)
+        write_report_and_exit(report, exit_code=1)
 
     # Write report
     write_report_and_exit(report)

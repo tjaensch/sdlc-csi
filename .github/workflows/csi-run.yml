@@ -514,12 +514,9 @@ jobs:
             --timeout "${OPENAI_TIMEOUT:-900}" || {
               echo "::warning::OpenAI scan exited with error"
               if [[ ! -s "$REPORT_FILE" ]]; then
-                {
-                  echo "## CSI Scan Failed"
-                  echo ""
-                  echo "The OpenAI-backed scan was unable to complete."
-                  echo "See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
-                } > "$REPORT_FILE"
+                python3 "${{ github.workspace }}/.github/scripts/openai-scan.py" \
+                  --output "$REPORT_FILE" \
+                  --fallback-report "OpenAI scan process exited with an error before producing a report" || true
               fi
             }
 
