@@ -224,7 +224,9 @@ Follow the pattern in existing rulesets under `rulesets/` — use `<LANG>-NNN` I
 - **Scan-only** — generates a report but cannot edit files
 - Requires `OPENAI_API_KEY` secret
 - Useful for getting a health report without automated changes
-- Default model: `gpt-4o` (configurable via `model` field)
+- Reads source files (`.go`, `.py`, `.js`, `.ts`, etc.) into context for code-level analysis
+- Default model: `o3` (configurable via `model` field)
+- Existing open CSI PRs do not block OpenAI scans
 
 ## Installer Options
 
@@ -281,7 +283,7 @@ gh workflow run csi-run.yml -f dry_run=true
 gh workflow run csi-run.yml
 
 # With a specific model
-gh workflow run csi-run.yml -f model=gpt-4o
+gh workflow run csi-run.yml -f model=o3
 ```
 
 ## ⚠️ Disclaimer
