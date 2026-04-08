@@ -284,6 +284,10 @@ gh workflow run csi-run.yml
 gh workflow run csi-run.yml -f model=gpt-4o
 ```
 
+## ⚠️ Disclaimer
+
+CSI uses LLM-generated analysis and code changes. LLM output **can be wrong, incomplete, or misleading** — including hallucinated file paths, incorrect fixes, or missed issues. All generated PRs **must be reviewed by a human** before merging. CSI is a maintenance assistant, not a substitute for developer judgment.
+
 ## FAQ
 
 **Q: How often should I run CSI?**
