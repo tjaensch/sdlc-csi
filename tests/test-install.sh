@@ -176,6 +176,24 @@ assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "# Usage:"
 assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "set -euo pipefail"
 echo ""
 
+# ── Test 9: OpenAI fallback report matches CSI output contract ────────────
+echo "Test 9: OpenAI fallback report format"
+FALLBACK_REPORT="$TEST_DIR/openai-fallback-report.md"
+if python3 "$SCRIPT_DIR/.github/scripts/openai-scan.py" \
+  --output "$FALLBACK_REPORT" \
+  --fallback-report "backend exploded" >/dev/null 2>&1; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Fallback report mode should exit non-zero"
+else
+  PASS=$((PASS + 1))
+fi
+
+FALLBACK_OUTPUT="$(cat "$FALLBACK_REPORT")"
+assert_output_contains "$FALLBACK_OUTPUT" "## Applied Fix"
+assert_output_contains "$FALLBACK_OUTPUT" "## Remaining Issues"
+assert_output_contains "$FALLBACK_OUTPUT" "**[CONFIG_CONSISTENCY] 🔴 HIGH**"
+echo ""
+
 # ── Results ───────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Results: $PASS passed, $FAIL failed"

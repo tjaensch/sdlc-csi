@@ -141,7 +141,7 @@ def build_scan_failure_report(error_message: str) -> str:
 
     return textwrap.dedent(
         f"""\
-        ## Scan Results
+        ## Applied Fix
 
         **Issue ID**: CSI-CONFIG-001
         **Category**: CONFIG
@@ -149,7 +149,7 @@ def build_scan_failure_report(error_message: str) -> str:
         **Description**: OpenAI scan backend could not complete.
 
         ### What Changed
-        No files were modified. OpenAI runs in scan-only mode, and this invocation failed before it could produce findings.
+        No fix was applied. The OpenAI backend is scan-only, and this invocation failed before it could produce findings.
 
         ### Evidence
         `.github/scripts/openai-scan.py` fallback report: `{normalized_error}`
@@ -161,7 +161,7 @@ def build_scan_failure_report(error_message: str) -> str:
 
         ## Remaining Issues
 
-        1. **[CONFIG] 🔴 HIGH**: OpenAI scan backend could not complete — `.github/scripts/openai-scan.py:92-135`
+        1. **[CONFIG_CONSISTENCY] 🔴 HIGH**: OpenAI scan backend could not complete — `.github/scripts/openai-scan.py:135-183`
 
         ---
 
