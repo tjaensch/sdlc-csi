@@ -511,17 +511,17 @@ jobs:
             --prompt-file "$PROMPT_FILE" \
             --output "$REPORT_FILE" \
             --model "${OPENAI_MODEL:-gpt-4o}" \
-            --timeout "${OPENAI_TIMEOUT:-900}" || {
+            --timeout "${OPENAI_TIMEOUT:-900}" && SCAN_OK=true || {
+              SCAN_OK=false
               echo "::warning::OpenAI scan exited with error"
-              {
-                echo "## CSI Scan Failed"
-                echo ""
-                echo "The OpenAI-backed scan was unable to complete."
-                echo "See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
-              } > "$REPORT_FILE"
+              if [[ ! -s "$REPORT_FILE" ]]; then
+                python3 "${{ github.workspace }}/.github/scripts/openai-scan.py" \
+                  --output "$REPORT_FILE" \
+                  --fallback-report "OpenAI scan process exited with an error before producing a report" || true
+              fi
             }
 
-          echo "scan_success=true" >> "$GITHUB_OUTPUT"
+          echo "scan_success=$SCAN_OK" >> "$GITHUB_OUTPUT"
           echo "report_file=$REPORT_FILE" >> "$GITHUB_OUTPUT"
 
       # ── Resolve scan outputs ─────────────────────────────────────────

@@ -11,10 +11,14 @@ for full scan-and-fix functionality.
 
 Usage:
     python openai-scan.py --prompt-file <path> --output <path> [--model <model>] [--timeout <seconds>]
+    python openai-scan.py --output <path> --fallback-report <error_message>
+
+    When --fallback-report is given, --prompt-file is not required. The script
+    writes a CSI-contract-compliant failure report and exits with code 1.
 
 Requires:
-    - OPENAI_API_KEY environment variable
-    - openai>=1.0.0 pip package
+    - OPENAI_API_KEY environment variable (not needed with --fallback-report)
+    - openai>=1.0.0 pip package (not needed with --fallback-report)
 """
 
 import argparse
@@ -22,6 +26,7 @@ import os
 import subprocess
 import sys
 import textwrap
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -84,30 +89,100 @@ def get_repo_context(max_files: int = 100) -> str:
     return "\n".join(lines)
 
 
+def build_scan_failure_report(error_message: str) -> str:
+    """Return a CSI-formatted fallback report for backend failures."""
+    timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    # Sanitize error: escape backticks and truncate to prevent markdown breakage
+    sanitized = error_message.replace("`", "'")
+    normalized_error = (" ".join(sanitized.split()) or "Unknown error")[:200]
+
+    return textwrap.dedent(
+        f"""\
+        ## Applied Fix
+
+        **Issue ID**: CSI-CONFIG-000
+        **Category**: CONFIG
+        **Severity**: 🔴 HIGH
+        **Description**: No fix applied — OpenAI scan backend could not complete.
+
+        ### What Changed
+        No repository files were modified.
+
+        ### Evidence
+        OpenAI scan backend failure: `{normalized_error}`
+
+        ### Verification
+        Retry the scan after resolving the issue described above.
+
+        ---
+
+        ## Remaining Issues
+
+        1. **[CONFIG] 🔴 HIGH**: OpenAI scan backend could not complete — `{normalized_error}`
+
+        ---
+
+        ## Scan Summary
+
+        | Category | Issues Found |
+        |----------|-------------|
+        | DRY Violations | 0 |
+        | Documentation Drift | 0 |
+        | Tooling Currency | 0 |
+        | Dead Code | 0 |
+        | Code Quality | 0 |
+        | Security Hygiene | 0 |
+        | Dependency Health | 0 |
+        | Config Consistency | 1 |
+        | **Total** | **1** |
+
+        *Scan completed: {timestamp}*
+        """
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="OpenAI-backed CSI scanner")
-    parser.add_argument("--prompt-file", required=True, help="Path to the agent prompt file")
+    parser.add_argument("--prompt-file", required=False, help="Path to the agent prompt file")
     parser.add_argument("--output", required=True, help="Path to write the report")
     parser.add_argument("--model", default="gpt-4o", help="OpenAI model to use")
     parser.add_argument("--timeout", type=int, default=900, help="Timeout in seconds")
+    parser.add_argument("--fallback-report", metavar="MSG", help="Write a CSI-formatted failure report with the given error message and exit")
     args = parser.parse_args()
+    output_path = Path(args.output)
+
+    def write_report_and_exit(report: str, exit_code: int = 0) -> None:
+        """Write report to output path (creating parent dirs) and exit."""
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(report, encoding="utf-8")
+        line_count = len(report.splitlines())
+        print(f"CSI report written: {output_path} ({line_count} lines)")
+        sys.exit(exit_code)
+
+    # Fallback report mode: write a CSI-formatted failure report and exit
+    if args.fallback_report:
+        write_report_and_exit(build_scan_failure_report(args.fallback_report), exit_code=1)
+
+    if not args.prompt_file:
+        print("::error::--prompt-file is required when not using --fallback-report", file=sys.stderr)
+        write_report_and_exit(build_scan_failure_report("--prompt-file is required"), exit_code=1)
 
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
         print("::error::OPENAI_API_KEY environment variable is not set", file=sys.stderr)
-        sys.exit(1)
+        write_report_and_exit(build_scan_failure_report("OPENAI_API_KEY environment variable is not set"), exit_code=1)
 
     try:
         from openai import OpenAI
     except ImportError:
         print("::error::openai package not installed. Run: pip install openai>=1.0.0", file=sys.stderr)
-        sys.exit(1)
+        write_report_and_exit(build_scan_failure_report("openai package not installed. Run: pip install openai>=1.0.0"), exit_code=1)
 
     # Read the prompt
     prompt_path = Path(args.prompt_file)
     if not prompt_path.is_file():
         print(f"::error::Prompt file not found: {args.prompt_file}", file=sys.stderr)
-        sys.exit(1)
+        write_report_and_exit(build_scan_failure_report(f"Prompt file not found: {args.prompt_file}"), exit_code=1)
 
     agent_prompt = prompt_path.read_text(encoding="utf-8")
 
@@ -189,22 +264,16 @@ def main() -> None:
         )
 
         report = response.choices[0].message.content or ""
+        if not report.strip():
+            raise ValueError("OpenAI API returned an empty report")
 
     except Exception as exc:
-        report = (
-            f"## CSI Scan Failed\n\n"
-            f"OpenAI API error: {exc}\n\n"
-            f"Check your OPENAI_API_KEY and model availability."
-        )
+        report = build_scan_failure_report(str(exc))
         print(f"::error::OpenAI API error: {exc}", file=sys.stderr)
+        write_report_and_exit(report, exit_code=1)
 
     # Write report
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(report, encoding="utf-8")
-
-    line_count = len(report.splitlines())
-    print(f"CSI report written: {output_path} ({line_count} lines)")
+    write_report_and_exit(report)
 
 
 if __name__ == "__main__":
