@@ -104,7 +104,7 @@ jobs:
           EXCLUDE_PATHS=$(yq -r '(.scan.exclude_paths // []) | join(",")' "$CONFIG_FILE")
 
           # Read custom rules
-          CUSTOM_RULES=$(yq -r '(.custom_rules // []) | join("|||")' "$CONFIG_FILE")
+          CUSTOM_RULES=$(yq -r '(.custom_rules // []) | join("\u001f")' "$CONFIG_FILE")
 
           # Validate backend
           if [[ "$BACKEND" != "copilot" && "$BACKEND" != "openai" ]]; then
@@ -302,7 +302,7 @@ jobs:
             echo "" >> "$PROMPT_FILE"
             echo "--- CUSTOM RULES ---" >> "$PROMPT_FILE"
             echo "The following repo-specific rules must also be checked:" >> "$PROMPT_FILE"
-            IFS='|||' read -ra RULES <<< "$CUSTOM_RULES"
+            IFS=$'\x1f' read -ra RULES <<< "$CUSTOM_RULES"
             for rule in "${RULES[@]}"; do
               rule="$(echo "$rule" | xargs)"
               [[ -n "$rule" ]] && echo "- $rule" >> "$PROMPT_FILE"
