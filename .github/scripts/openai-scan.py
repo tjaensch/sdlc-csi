@@ -88,7 +88,9 @@ def get_repo_context(max_files: int = 100) -> str:
 def build_scan_failure_report(error_message: str) -> str:
     """Return a CSI-formatted fallback report for backend failures."""
     timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    normalized_error = " ".join(error_message.split()) or "Unknown OpenAI API error"
+    # Sanitize error: escape backticks and truncate to prevent markdown breakage
+    sanitized = error_message.replace("`", "'")
+    normalized_error = (" ".join(sanitized.split()) or "Unknown OpenAI API error")[:200]
 
     return textwrap.dedent(
         f"""\
@@ -142,29 +144,32 @@ def main() -> None:
     parser.add_argument("--model", default="gpt-4o", help="OpenAI model to use")
     parser.add_argument("--timeout", type=int, default=900, help="Timeout in seconds")
     args = parser.parse_args()
+    output_path = Path(args.output)
+
+    def write_report_and_exit(report: str, exit_code: int = 0) -> None:
+        """Write report to output path (creating parent dirs) and exit."""
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(report, encoding="utf-8")
+        line_count = len(report.splitlines())
+        print(f"CSI report written: {output_path} ({line_count} lines)")
+        sys.exit(exit_code)
 
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
         print("::error::OPENAI_API_KEY environment variable is not set", file=sys.stderr)
-        report = build_scan_failure_report("OPENAI_API_KEY environment variable is not set")
-        Path(args.output).write_text(report, encoding="utf-8")
-        sys.exit(1)
+        write_report_and_exit(build_scan_failure_report("OPENAI_API_KEY environment variable is not set"))
 
     try:
         from openai import OpenAI
     except ImportError:
         print("::error::openai package not installed. Run: pip install openai>=1.0.0", file=sys.stderr)
-        report = build_scan_failure_report("openai package not installed. Run: pip install openai>=1.0.0")
-        Path(args.output).write_text(report, encoding="utf-8")
-        sys.exit(1)
+        write_report_and_exit(build_scan_failure_report("openai package not installed. Run: pip install openai>=1.0.0"))
 
     # Read the prompt
     prompt_path = Path(args.prompt_file)
     if not prompt_path.is_file():
         print(f"::error::Prompt file not found: {args.prompt_file}", file=sys.stderr)
-        report = build_scan_failure_report(f"Prompt file not found: {args.prompt_file}")
-        Path(args.output).write_text(report, encoding="utf-8")
-        sys.exit(1)
+        write_report_and_exit(build_scan_failure_report(f"Prompt file not found: {args.prompt_file}"))
 
     agent_prompt = prompt_path.read_text(encoding="utf-8")
 
@@ -254,12 +259,7 @@ def main() -> None:
         print(f"::error::OpenAI API error: {exc}", file=sys.stderr)
 
     # Write report
-    output_path = Path(args.output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(report, encoding="utf-8")
-
-    line_count = len(report.splitlines())
-    print(f"CSI report written: {output_path} ({line_count} lines)")
+    write_report_and_exit(report)
 
 
 if __name__ == "__main__":

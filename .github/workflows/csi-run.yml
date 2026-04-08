@@ -513,12 +513,14 @@ jobs:
             --model "${OPENAI_MODEL:-gpt-4o}" \
             --timeout "${OPENAI_TIMEOUT:-900}" || {
               echo "::warning::OpenAI scan exited with error"
-              {
-                echo "## CSI Scan Failed"
-                echo ""
-                echo "The OpenAI-backed scan was unable to complete."
-                echo "See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
-              } > "$REPORT_FILE"
+              if [[ ! -s "$REPORT_FILE" ]]; then
+                {
+                  echo "## CSI Scan Failed"
+                  echo ""
+                  echo "The OpenAI-backed scan was unable to complete."
+                  echo "See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details."
+                } > "$REPORT_FILE"
+              fi
             }
 
           echo "scan_success=true" >> "$GITHUB_OUTPUT"
