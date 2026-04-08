@@ -188,10 +188,15 @@ else
   PASS=$((PASS + 1))
 fi
 
-FALLBACK_OUTPUT="$(cat "$FALLBACK_REPORT")"
-assert_output_contains "$FALLBACK_OUTPUT" "## Applied Fix"
-assert_output_contains "$FALLBACK_OUTPUT" "## Remaining Issues"
-assert_output_contains "$FALLBACK_OUTPUT" "**[CONFIG_CONSISTENCY] 🔴 HIGH**"
+if [[ -f "$FALLBACK_REPORT" ]]; then
+  FALLBACK_OUTPUT="$(cat "$FALLBACK_REPORT")"
+  assert_output_contains "$FALLBACK_OUTPUT" "## Applied Fix"
+  assert_output_contains "$FALLBACK_OUTPUT" "## Remaining Issues"
+  assert_output_contains "$FALLBACK_OUTPUT" "**[CONFIG_CONSISTENCY] 🔴 HIGH**"
+else
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Expected fallback report to exist: $FALLBACK_REPORT"
+fi
 echo ""
 
 # ── Results ───────────────────────────────────────────────────────────────
