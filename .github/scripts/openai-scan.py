@@ -11,10 +11,14 @@ for full scan-and-fix functionality.
 
 Usage:
     python openai-scan.py --prompt-file <path> --output <path> [--model <model>] [--timeout <seconds>]
+    python openai-scan.py --output <path> --fallback-report <error_message>
+
+    When --fallback-report is given, --prompt-file is not required. The script
+    writes a CSI-contract-compliant failure report and exits with code 1.
 
 Requires:
-    - OPENAI_API_KEY environment variable
-    - openai>=1.0.0 pip package
+    - OPENAI_API_KEY environment variable (not needed with --fallback-report)
+    - openai>=1.0.0 pip package (not needed with --fallback-report)
 """
 
 import argparse
@@ -90,7 +94,7 @@ def build_scan_failure_report(error_message: str) -> str:
     timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     # Sanitize error: escape backticks and truncate to prevent markdown breakage
     sanitized = error_message.replace("`", "'")
-    normalized_error = (" ".join(sanitized.split()) or "Unknown OpenAI API error")[:200]
+    normalized_error = (" ".join(sanitized.split()) or "Unknown error")[:200]
 
     return textwrap.dedent(
         f"""\
@@ -99,22 +103,22 @@ def build_scan_failure_report(error_message: str) -> str:
         **Issue ID**: CSI-CONFIG-000
         **Category**: CONFIG
         **Severity**: 🔴 HIGH
-        **Description**: No fix applied — OpenAI scan could not complete because the backend request failed.
+        **Description**: No fix applied — OpenAI scan backend could not complete.
 
         ### What Changed
         No repository files were modified.
 
         ### Evidence
-        OpenAI API error while generating the CSI report: `{normalized_error}`
+        OpenAI scan backend failure: `{normalized_error}`
 
         ### Verification
-        Retry the scan after correcting the OpenAI backend configuration or model availability.
+        Retry the scan after resolving the issue described above.
 
         ---
 
         ## Remaining Issues
 
-        1. **[CONFIG] 🔴 HIGH**: Scan could not complete because the OpenAI backend request failed — command output: `{normalized_error}`
+        1. **[CONFIG] 🔴 HIGH**: OpenAI scan backend could not complete — `{normalized_error}`
 
         ---
 

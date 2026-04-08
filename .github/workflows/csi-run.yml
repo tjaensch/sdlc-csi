@@ -511,7 +511,8 @@ jobs:
             --prompt-file "$PROMPT_FILE" \
             --output "$REPORT_FILE" \
             --model "${OPENAI_MODEL:-gpt-4o}" \
-            --timeout "${OPENAI_TIMEOUT:-900}" || {
+            --timeout "${OPENAI_TIMEOUT:-900}" && SCAN_OK=true || {
+              SCAN_OK=false
               echo "::warning::OpenAI scan exited with error"
               if [[ ! -s "$REPORT_FILE" ]]; then
                 python3 "${{ github.workspace }}/.github/scripts/openai-scan.py" \
@@ -520,7 +521,7 @@ jobs:
               fi
             }
 
-          echo "scan_success=true" >> "$GITHUB_OUTPUT"
+          echo "scan_success=$SCAN_OK" >> "$GITHUB_OUTPUT"
           echo "report_file=$REPORT_FILE" >> "$GITHUB_OUTPUT"
 
       # ── Resolve scan outputs ─────────────────────────────────────────
