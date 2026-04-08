@@ -183,6 +183,8 @@ rulesets:
 | `generic` | Any | README exists, no committed secrets, pinned CI actions *(always active)* |
 | `python` | Python | Type hints on public functions, no bare `except:`, use `pathlib` |
 | `javascript` | JS/TS | Lockfile committed, no `console.log` in prod, strict TypeScript |
+| `bash` | Bash/Shell | `set -euo pipefail`, quote variables, `mktemp` for temp files |
+| `powershell` | PowerShell | `$ErrorActionPreference = 'Stop'`, no aliases in scripts, PSScriptAnalyzer |
 | `java` | Java | Try-with-resources, SLF4J over `println`, pin Maven/Gradle versions |
 | `go` | Go | Handle all errors, `go.sum` committed, no `panic` in libraries |
 | `rust` | Rust | No `unwrap()` in prod, `clippy` in CI, `// SAFETY:` on `unsafe` |
