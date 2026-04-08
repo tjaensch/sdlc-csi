@@ -241,7 +241,7 @@ Options:
   --help                    Show help
 ```
 
-The installer is **idempotent** — re-running updates CSI files but never overwrites your `.csi.yml` configuration.
+The installer is **idempotent** — re-running preserves existing CSI files by default and never overwrites your `.csi.yml` configuration; use `--force` to refresh CSI-managed files.
 
 ## Uninstalling
 
