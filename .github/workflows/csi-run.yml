@@ -555,9 +555,14 @@ jobs:
         env:
           HAS_PAT: ${{ steps.token.outputs.has_pat }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          BACKEND: ${{ steps.config.outputs.backend }}
         run: |
           if [[ "$DRY_RUN" == "true" ]]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$BACKEND" == "openai" ]]; then
+            # OpenAI is scan-only — never produces file changes
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::OpenAI scan complete — see report for findings."
           elif [[ "$HAS_PAT" == "true" ]]; then
             # PAT can push workflow files — check all changes
             ALL_CHANGES=$(git status --porcelain || true)
