@@ -134,10 +134,14 @@ jobs:
         run: |
           if [[ -n "${{ secrets.CSI_PAT }}" ]]; then
             echo "has_pat=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::CSI_PAT detected — workflow file edits enabled."
+            if [[ "${{ steps.config.outputs.backend }}" != "openai" ]]; then
+              echo "::notice::CSI_PAT detected — workflow file edits enabled."
+            fi
           else
             echo "has_pat=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No CSI_PAT — using GITHUB_TOKEN (workflow file edits excluded)."
+            if [[ "${{ steps.config.outputs.backend }}" != "openai" ]]; then
+              echo "::notice::No CSI_PAT — using GITHUB_TOKEN (workflow file edits excluded)."
+            fi
           fi
 
       # ── Re-checkout on configured base branch ────────────────────────
