@@ -33,14 +33,14 @@ while [[ $# -gt 0 ]]; do
     --force)
       FORCE=true; shift ;;
     --help|-h)
-      cat <<'HELPEOF'
+      cat <<HELPEOF
 Install CSI (Continuous Self-Improvement) into a repository.
 
 Copies the CSI workflow, agent, and helper scripts into the target repo.
 Creates a .csi.yml config file from a template if one doesn't already exist.
 
 Usage:
-  install.sh [OPTIONS]
+  $(basename "$0") [OPTIONS]
 
 Options:
   --repo-path <path>       Target repository root (default: current directory)

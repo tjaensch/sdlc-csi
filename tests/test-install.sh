@@ -165,6 +165,17 @@ else
 fi
 echo ""
 
+# ── Test 8: Uninstall help output should stay user-facing ─────────────────
+echo "Test 8: Uninstall help output"
+UNINSTALL_HELP_OUTPUT="$(bash "$SCRIPT_DIR/uninstall.sh" --help)"
+
+assert_output_contains "$UNINSTALL_HELP_OUTPUT" "Usage:"
+assert_output_contains "$UNINSTALL_HELP_OUTPUT" "--remove-config"
+assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "# ─"
+assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "# Usage:"
+assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "set -euo pipefail"
+echo ""
+
 # ── Results ───────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Results: $PASS passed, $FAIL failed"

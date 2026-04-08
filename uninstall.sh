@@ -1,17 +1,8 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────────────────────
 # uninstall.sh — Remove CSI files from a repository
-# ────────────────────────────────────────────────────────────────────────────
-# Removes the CSI workflow, agent, and helper scripts. Preserves .csi.yml
-# (your configuration) unless --remove-config is specified.
 #
-# Usage:
-#   ./uninstall.sh [OPTIONS]
-#
-# Options:
-#   --repo-path <path>    Target repository root (default: current directory)
-#   --remove-config       Also remove .csi.yml
-#   --help                Show this help message
+# Run with --help for usage and options.
 # ────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
@@ -26,7 +17,20 @@ while [[ $# -gt 0 ]]; do
     --remove-config)
       REMOVE_CONFIG=true; shift ;;
     --help|-h)
-      head -15 "$0" | tail -10
+      cat <<HELPEOF
+Remove CSI (Continuous Self-Improvement) from a repository.
+
+Removes the CSI workflow, agent, helper scripts, and bundled rulesets.
+Preserves .csi.yml unless --remove-config is specified.
+
+Usage:
+  $(basename "$0") [OPTIONS]
+
+Options:
+  --repo-path <path>    Target repository root (default: current directory)
+  --remove-config       Also remove .csi.yml
+  --help                Show this help message
+HELPEOF
       exit 0
       ;;
     *)
