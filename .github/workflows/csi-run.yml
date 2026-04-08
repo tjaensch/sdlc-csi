@@ -164,9 +164,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH_NAME: ${{ steps.branch.outputs.name }}
+          BACKEND: ${{ steps.config.outputs.backend }}
         run: |
           set -euo pipefail
           echo "::add-mask::${GH_TOKEN}"
+
+          # OpenAI is scan-only (no PR creation), so never skip
+          if [[ "$BACKEND" == "openai" ]]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::OpenAI backend — skipping existing-PR check (scan-only mode)."
+            exit 0
+          fi
 
           if ! OPEN_PR=$(gh pr list \
             --head "$BRANCH_NAME" \
