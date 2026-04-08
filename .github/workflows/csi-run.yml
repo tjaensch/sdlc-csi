@@ -705,7 +705,7 @@ jobs:
             echo "| Field | Value |"
             echo "|-------|-------|"
             echo "| **Date** | ${DATE_STAMP} |"
-            echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; else echo '🔧 Scan & Fix'; fi) |"
+            echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; elif [[ \"$BACKEND\" == 'openai' ]]; then echo '🔍 Scan Only'; else echo '🔧 Scan & Fix'; fi) |"
             echo "| **Backend** | \`${BACKEND}\` |"
             echo "| **Scan Status** | $(if [[ \"$SKIPPED\" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ \"$SCAN_SUCCESS\" == 'true' ]]; then echo '✅ Success'; else echo '❌ Failed'; fi) |"
             if [[ "$SKIPPED" != 'true' ]]; then

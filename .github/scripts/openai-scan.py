@@ -98,20 +98,15 @@ def build_scan_failure_report(error_message: str) -> str:
 
     return textwrap.dedent(
         f"""\
-        ## Applied Fix
+        ## Scan Results
 
-        **Issue ID**: CSI-CONFIG-000
-        **Category**: CONFIG
-        **Severity**: 🔴 HIGH
-        **Description**: No fix applied — OpenAI scan backend could not complete.
+        **Status**: ❌ SCAN FAILED
+        **Description**: OpenAI scan backend could not complete.
 
-        ### What Changed
-        No repository files were modified.
+        ### Details
+        `{normalized_error}`
 
-        ### Evidence
-        OpenAI scan backend failure: `{normalized_error}`
-
-        ### Verification
+        ### Next Steps
         Retry the scan after resolving the issue described above.
 
         ---
@@ -200,27 +195,18 @@ def main() -> None:
         headings expected by the workflow.
 
         IMPORTANT RULES:
-        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary) even if no issues are found.
+        - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary) even if no issues are found.
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
         - The *Scan completed:* line must always be the very last line of your output.
 
         Output your response in this exact format:
 
-        ## Applied Fix
+        ## Scan Results
 
-        **Issue ID**: CSI-QUALITY-000
-        **Category**: QUALITY
-        **Severity**: 🟢 LOW
-        **Description**: No fix applied — OpenAI backend runs in scan-only mode.
+        **Mode**: Scan Only (no auto-fix)
+        **Backend**: OpenAI
 
-        ### What Changed
-        No repository files were modified.
-
-        ### Evidence
-        OpenAI backend is scan-only; issues are reported below in Remaining Issues with file paths, line numbers, or command outputs.
-
-        ### Verification
-        No file edits were applied.
+        This is a scan-only report. No files were modified. All findings are listed below under Remaining Issues with file paths, line numbers, and evidence.
 
         ---
 
