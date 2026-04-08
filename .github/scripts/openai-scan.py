@@ -22,6 +22,7 @@ import os
 import subprocess
 import sys
 import textwrap
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -82,6 +83,56 @@ def get_repo_context(max_files: int = 100) -> str:
                 pass
 
     return "\n".join(lines)
+
+
+def build_scan_failure_report(error_message: str) -> str:
+    """Return a CSI-formatted fallback report for backend failures."""
+    timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    normalized_error = " ".join(error_message.split()) or "Unknown OpenAI API error"
+
+    return textwrap.dedent(
+        f"""\
+        ## Applied Fix
+
+        **Issue ID**: CSI-CONFIG-000
+        **Category**: CONFIG
+        **Severity**: 🔴 HIGH
+        **Description**: No fix applied — OpenAI scan could not complete because the backend request failed.
+
+        ### What Changed
+        No repository files were modified.
+
+        ### Evidence
+        OpenAI API error while generating the CSI report: `{normalized_error}`
+
+        ### Verification
+        Retry the scan after correcting the OpenAI backend configuration or model availability.
+
+        ---
+
+        ## Remaining Issues
+
+        1. **[CONFIG] 🔴 HIGH**: Scan could not complete because the OpenAI backend request failed — command output: `{normalized_error}`
+
+        ---
+
+        ## Scan Summary
+
+        | Category | Issues Found |
+        |----------|-------------|
+        | DRY Violations | 0 |
+        | Documentation Drift | 0 |
+        | Tooling Currency | 0 |
+        | Dead Code | 0 |
+        | Code Quality | 0 |
+        | Security Hygiene | 0 |
+        | Dependency Health | 0 |
+        | Config Consistency | 1 |
+        | **Total** | **1** |
+
+        *Scan completed: {timestamp}*
+        """
+    )
 
 
 def main() -> None:
@@ -189,13 +240,11 @@ def main() -> None:
         )
 
         report = response.choices[0].message.content or ""
+        if not report.strip():
+            raise ValueError("OpenAI API returned an empty report")
 
     except Exception as exc:
-        report = (
-            f"## CSI Scan Failed\n\n"
-            f"OpenAI API error: {exc}\n\n"
-            f"Check your OPENAI_API_KEY and model availability."
-        )
+        report = build_scan_failure_report(str(exc))
         print(f"::error::OpenAI API error: {exc}", file=sys.stderr)
 
     # Write report
