@@ -106,6 +106,10 @@ echo ""
 echo "📦 Installing files..."
 
 copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$REPO_PATH/.github/workflows/csi-run.yml"
+
+# Patch the schedule cron in the installed workflow to match the user's config
+sed -i "s|    - cron: '0 10 \* \* 1'|    - cron: '${SCHEDULE}'|" "$REPO_PATH/.github/workflows/csi-run.yml"
+
 copy_file "$SCRIPT_DIR/.github/agents/csi-maintainer.agent.md" "$REPO_PATH/.github/agents/csi-maintainer.agent.md"
 copy_file "$SCRIPT_DIR/.github/scripts/install-copilot-cli.sh" "$REPO_PATH/.github/scripts/install-copilot-cli.sh"
 copy_file "$SCRIPT_DIR/.github/scripts/sanitize-report.sh" "$REPO_PATH/.github/scripts/sanitize-report.sh"
