@@ -41,6 +41,30 @@ assert_file_contains() {
   fi
 }
 
+assert_output_contains() {
+  local output="$1"
+  local expected="$2"
+
+  if grep -Fq -- "$expected" <<< "$output"; then
+    PASS=$((PASS + 1))
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: Expected output to contain '$expected'"
+  fi
+}
+
+assert_output_not_contains() {
+  local output="$1"
+  local unexpected="$2"
+
+  if grep -Fq -- "$unexpected" <<< "$output"; then
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: Expected output to NOT contain '$unexpected'"
+  else
+    PASS=$((PASS + 1))
+  fi
+}
+
 # ── Test 1: Fresh install ─────────────────────────────────────────────────
 echo "Test 1: Fresh install with defaults"
 REPO1="$TEST_DIR/repo1"
@@ -112,11 +136,19 @@ assert_file_not_exists "$REPO2/.github/rulesets/javascript.md"
 assert_file_not_exists "$REPO2/.csi.yml"
 echo ""
 
-# ── Test 6: Non-git directory should fail ─────────────────────────────────
-echo "Test 6: Reject non-git directory"
+# ── Test 6: Help output should stay user-facing ───────────────────────────
+echo "Test 6: Install help output"
+INSTALL_HELP_OUTPUT="$(bash "$SCRIPT_DIR/install.sh" --help)"
+
+assert_output_contains "$INSTALL_HELP_OUTPUT" "# Usage:"
+assert_output_contains "$INSTALL_HELP_OUTPUT" "#   --schedule <cron>        Cron schedule for automated scans"
+assert_output_not_contains "$INSTALL_HELP_OUTPUT" "set -euo pipefail"
+echo ""
+
+# ── Test 7: Non-git directory should fail ─────────────────────────────────
+echo "Test 7: Reject non-git directory"
 NON_GIT="$TEST_DIR/not-a-repo"
 mkdir -p "$NON_GIT"
-
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$NON_GIT" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected non-git directory"

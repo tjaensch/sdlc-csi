@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
     --force)
       FORCE=true; shift ;;
     --help|-h)
-      head -20 "$0" | tail -15
+      sed -n '5,19p' "$0"
       exit 0
       ;;
     *)
