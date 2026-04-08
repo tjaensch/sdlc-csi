@@ -105,10 +105,21 @@ copy_file() {
 echo ""
 echo "📦 Installing files..."
 
-copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$REPO_PATH/.github/workflows/csi-run.yml"
+WORKFLOW_DST="$REPO_PATH/.github/workflows/csi-run.yml"
+WORKFLOW_PREEXISTED=false
+[[ -e "$WORKFLOW_DST" ]] && WORKFLOW_PREEXISTED=true
 
-# Patch the schedule cron in the installed workflow to match the user's config
-sed -i "s|    - cron: '0 10 \* \* 1'|    - cron: '${SCHEDULE}'|" "$REPO_PATH/.github/workflows/csi-run.yml"
+copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$WORKFLOW_DST"
+
+# Patch the schedule cron only when the workflow was installed/overwritten
+if [[ "$FORCE" == "true" || "$WORKFLOW_PREEXISTED" == "false" ]]; then
+  tmp_workflow="$(mktemp)"
+  awk -v schedule="$SCHEDULE" '
+    /^    - cron:/ { print "    - cron: \047" schedule "\047"; next }
+    { print }
+  ' "$WORKFLOW_DST" > "$tmp_workflow"
+  mv "$tmp_workflow" "$WORKFLOW_DST"
+fi
 
 copy_file "$SCRIPT_DIR/.github/agents/csi-maintainer.agent.md" "$REPO_PATH/.github/agents/csi-maintainer.agent.md"
 copy_file "$SCRIPT_DIR/.github/scripts/install-copilot-cli.sh" "$REPO_PATH/.github/scripts/install-copilot-cli.sh"

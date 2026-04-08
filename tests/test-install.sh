@@ -89,6 +89,7 @@ assert_file_exists "$REPO1/.github/scripts/openai-scan.py"
 assert_file_exists "$REPO1/.github/rulesets/generic.md"
 assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
+assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
 echo ""
 
 # ── Test 2: Idempotency — .csi.yml preserved ─────────────────────────────
@@ -116,6 +117,7 @@ assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
 assert_file_contains "$REPO2/.csi.yml" "backend: openai"
 assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
+assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
 echo ""
 
 # ── Test 4: Uninstall preserves config ────────────────────────────────────
