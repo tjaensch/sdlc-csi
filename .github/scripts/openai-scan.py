@@ -30,8 +30,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def get_repo_context(max_files: int = 100) -> str:
-    """Gather repository context: file tree and key file contents."""
+# Source file extensions the scanner should read
+SOURCE_EXTENSIONS = {
+    ".go", ".py", ".js", ".ts", ".jsx", ".tsx",
+    ".java", ".kt", ".kts", ".cs", ".rs", ".rb",
+    ".swift", ".php", ".c", ".cpp", ".h", ".hpp",
+    ".sh", ".bash", ".ps1", ".nf", ".groovy",
+    ".tf", ".hcl", ".yaml", ".yml", ".toml", ".json",
+}
+
+# Directories to always exclude
+EXCLUDE_DIRS = {
+    "node_modules", ".git", "vendor", "__pycache__",
+    "dist", ".venv", "venv", ".next", "build", "target",
+}
+
+
+def get_repo_context(max_files: int = 100, max_source_chars: int = 80_000) -> str:
+    """Gather repository context: file tree, config files, and source code."""
     lines = ["## Repository Structure\n"]
 
     # File tree (excluding common noise)
@@ -55,10 +71,11 @@ def get_repo_context(max_files: int = 100) -> str:
     except (subprocess.TimeoutExpired, FileNotFoundError):
         lines.append("(Could not list files)\n")
 
-    # Read key files
+    # Read key config/meta files
     key_files = [
         "README.md", "CONTRIBUTING.md", ".gitignore", ".csi.yml",
         "package.json", "requirements.txt", "pyproject.toml",
+        "go.mod", "go.sum", "Cargo.toml",
         "Makefile", "Dockerfile", "docker-compose.yml",
     ]
 
@@ -67,7 +84,6 @@ def get_repo_context(max_files: int = 100) -> str:
         if path.is_file():
             try:
                 content = path.read_text(encoding="utf-8", errors="replace")
-                # Truncate large files
                 if len(content) > 3000:
                     content = content[:3000] + "\n... (truncated)"
                 lines.append(f"### {fname}\n```\n{content}\n```\n")
@@ -85,6 +101,33 @@ def get_repo_context(max_files: int = 100) -> str:
                 lines.append(f"### {wf}\n```yaml\n{content}\n```\n")
             except OSError:
                 pass
+
+    # Read source files so the model can analyse actual code
+    lines.append("## Source Files\n")
+    source_chars = 0
+    source_files = []
+
+    for root, dirs, filenames in os.walk("."):
+        # Prune excluded directories in-place
+        dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
+        for fname in sorted(filenames):
+            if Path(fname).suffix.lower() in SOURCE_EXTENSIONS:
+                source_files.append(os.path.join(root, fname))
+
+    for fpath in sorted(source_files):
+        if source_chars >= max_source_chars:
+            lines.append(f"\n... (source budget exhausted at {max_source_chars} chars, {len(source_files)} files total)\n")
+            break
+        try:
+            content = Path(fpath).read_text(encoding="utf-8", errors="replace")
+            # Per-file cap at 5 KB to avoid one huge file eating the budget
+            if len(content) > 5000:
+                content = content[:5000] + "\n... (truncated)"
+            source_chars += len(content)
+            ext = Path(fpath).suffix.lstrip(".")
+            lines.append(f"### {fpath}\n```{ext}\n{content}\n```\n")
+        except OSError:
+            pass
 
     return "\n".join(lines)
 
@@ -145,7 +188,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="OpenAI-backed CSI scanner")
     parser.add_argument("--prompt-file", required=False, help="Path to the agent prompt file")
     parser.add_argument("--output", required=True, help="Path to write the report")
-    parser.add_argument("--model", default="gpt-4o", help="OpenAI model to use")
+    parser.add_argument("--model", default="o3", help="OpenAI model to use")
     parser.add_argument("--timeout", type=int, default=900, help="Timeout in seconds")
     parser.add_argument("--fallback-report", metavar="MSG", help="Write a CSI-formatted failure report with the given error message and exit")
     args = parser.parse_args()
