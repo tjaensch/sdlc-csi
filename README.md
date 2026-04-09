@@ -126,7 +126,7 @@ backend: copilot
 # model: "gpt-5.4"
 
 # Scan timeout in seconds
-timeout: 900
+timeout: 1800
 
 # Toggle scan categories
 scan:
@@ -162,7 +162,7 @@ custom_rules: []
 | `stale_pr_days` | int | `3` | Days before unmerged PRs are auto-closed |
 | `backend` | string | `"copilot"` | `"copilot"` or `"openai"` |
 | `model` | string | `""` | LLM model override |
-| `timeout` | int | `900` | Scan timeout in seconds |
+| `timeout` | int | `1800` | Scan timeout in seconds |
 | `scan.categories.*` | bool | `true` | Enable/disable individual scan categories |
 | `scan.exclude_paths` | list | common vendors | Glob patterns to skip during scanning |
 | `rulesets` | list | `[]` | Language rule packs to enable |

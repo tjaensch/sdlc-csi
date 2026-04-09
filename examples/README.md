@@ -14,7 +14,7 @@ schedule: "0 10 * * 1"
 base_branch: main
 stale_pr_days: 3
 backend: copilot
-timeout: 900
+timeout: 1800
 
 scan:
   categories:
