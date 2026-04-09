@@ -59,11 +59,11 @@ These constraints override all other behavior:
 2. **DO NOT** delete any file unless replacing it with an equivalent or better version.
 3. **DO NOT** modify GitHub Actions secrets, tokens, or authentication steps.
 4. **DO NOT** change workflow trigger conditions (`on:` blocks) — schedule, event types, or branch filters.
-4. **DO NOT** alter security-sensitive configurations (permissions, OIDC, App tokens).
-5. **DO NOT** modify `.gitignore` to exclude tracked files.
-6. **DO NOT** make breaking changes to public interfaces (API signatures, config schemas, CLI arguments).
-7. **DO NOT** update pinned versions without verifying the new version exists (use `githubRepo` to check releases).
-8. **Keep all changes backward-compatible** — existing workflows, scripts, and builds must continue to work after the fix.
+5. **DO NOT** alter security-sensitive configurations (permissions, OIDC, App tokens).
+6. **DO NOT** modify `.gitignore` to exclude tracked files.
+7. **DO NOT** make breaking changes to public interfaces (API signatures, config schemas, CLI arguments).
+8. **DO NOT** update pinned versions without verifying the new version exists (use `githubRepo` to check releases).
+9. **Keep all changes backward-compatible** — existing workflows, scripts, and builds must continue to work after the fix.
 
 ---
 
@@ -97,7 +97,7 @@ These constraints override all other behavior:
 ├─ runCommands: `find . -maxdepth 3 -type f \( -name '*.py' -o -name '*.js' -o -name '*.ts' -o -name '*.cs' -o -name '*.go' -o -name '*.rs' -o -name '*.java' -o -name '*.rb' -o -name '*.sh' \) 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v .git | head -200`
 │   └─ CAPTURE: Source files (first 200 to stay within scan limits)
 │
-├─ runCommands: `find . -maxdepth 2 -name 'package.json' -o -name 'requirements*.txt' -o -name 'Pipfile' -o -name 'pyproject.toml' -o -name '*.csproj' -o -name 'go.mod' -o -name 'Cargo.toml' -o -name 'Gemfile' -o -name 'pom.xml' -o -name 'build.gradle' 2>/dev/null | grep -v node_modules | sort`
+├─ runCommands: `find . -maxdepth 2 \( -name 'package.json' -o -name 'requirements*.txt' -o -name 'Pipfile' -o -name 'pyproject.toml' -o -name '*.csproj' -o -name 'go.mod' -o -name 'Cargo.toml' -o -name 'Gemfile' -o -name 'pom.xml' -o -name 'build.gradle' \) 2>/dev/null | grep -v node_modules | sort`
 │   └─ CAPTURE: Dependency manifest files
 │
 ├─ codebase: Read README.md if it exists
