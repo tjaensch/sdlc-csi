@@ -11,7 +11,7 @@ env:
 
 on:
   schedule:
-    # Default: weekly Monday at 10:00 UTC. Override via .csi.yml → schedule
+    # Default: weekly Monday 10:00 UTC — the installer patches this from the CLI --schedule value and writes the same value to .csi.yml
     - cron: '0 10 * * 1'
   workflow_dispatch:
     inputs:

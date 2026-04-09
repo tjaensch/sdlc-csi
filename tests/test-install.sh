@@ -89,6 +89,7 @@ assert_file_exists "$REPO1/.github/scripts/openai-scan.py"
 assert_file_exists "$REPO1/.github/rulesets/generic.md"
 assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
+assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
 echo ""
 
 # ── Test 2: Idempotency — .csi.yml preserved ─────────────────────────────
@@ -116,6 +117,7 @@ assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
 assert_file_contains "$REPO2/.csi.yml" "backend: openai"
 assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
+assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
 echo ""
 
 # ── Test 4: Uninstall preserves config ────────────────────────────────────
@@ -196,6 +198,34 @@ if [[ -f "$FALLBACK_REPORT" ]]; then
 else
   FAIL=$((FAIL + 1))
   echo "  FAIL: Expected fallback report to exist: $FALLBACK_REPORT"
+fi
+echo ""
+
+# ── Test 10: Invalid schedule characters rejected ─────────────────────────
+echo "Test 10: Reject invalid --schedule characters"
+REPO_SCHED="$TEST_DIR/repo_sched"
+mkdir -p "$REPO_SCHED" && cd "$REPO_SCHED" && git init -q
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "'; echo pwned'" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with quotes"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
+# ── Test 11: Reject schedule with wrong number of fields ──────────────────
+echo "Test 11: Reject --schedule with wrong field count"
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "0 8 *" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with 3 fields"
+else
+  PASS=$((PASS + 1))
+fi
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "1" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with 1 field"
+else
+  PASS=$((PASS + 1))
 fi
 echo ""
 
