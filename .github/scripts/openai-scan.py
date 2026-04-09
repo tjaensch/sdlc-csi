@@ -247,6 +247,8 @@ def main() -> None:
         - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary).
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
         - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
+          This is intentionally different from the Copilot agent's "Applied Fix" header
+          because this backend only scans — it never modifies files. Do NOT change this.
         - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
         - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
