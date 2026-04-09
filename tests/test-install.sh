@@ -89,6 +89,7 @@ assert_file_exists "$REPO1/.github/scripts/openai-scan.py"
 assert_file_exists "$REPO1/.github/rulesets/generic.md"
 assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
+assert_file_contains "$REPO1/.csi.yml" "timeout: 1800"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
 echo ""
 
