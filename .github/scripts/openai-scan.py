@@ -244,16 +244,16 @@ def main() -> None:
         produce a structured report of your findings.
 
         IMPORTANT RULES:
-        - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary).
+        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary).
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
-        - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
+        - The first section MUST be titled "## Applied Fix".
         - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
         - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
 
         Output your response in this EXACT format (do not deviate):
 
-        ## Scan Results
+        ## Applied Fix
 
         **Issue ID**: <ID or None>
         **Category**: <category or None>
