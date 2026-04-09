@@ -1,0 +1,18 @@
+# Enforce LF line endings in the repository
+* text=auto eol=lf
+
+# Ensure shell scripts are always LF
+*.sh text eol=lf
+
+# Ensure workflow and config files are always LF
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
