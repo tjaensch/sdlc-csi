@@ -179,12 +179,15 @@ RULESETS_DIR="$REPO_PATH/.github/rulesets"
 mkdir -p "$RULESETS_DIR"
 copy_file "$SCRIPT_DIR/rulesets/generic.md" "$RULESETS_DIR/generic.md"
 
+VALID_RULESETS=()
+
 if [[ -n "$RULESETS" ]]; then
   IFS=',' read -ra RULESET_ARRAY <<< "$RULESETS"
   for ruleset in "${RULESET_ARRAY[@]}"; do
     ruleset="$(echo "$ruleset" | xargs)"
     if [[ -f "$SCRIPT_DIR/rulesets/${ruleset}.md" ]]; then
       copy_file "$SCRIPT_DIR/rulesets/${ruleset}.md" "$RULESETS_DIR/${ruleset}.md"
+      VALID_RULESETS+=("$ruleset")
     else
       echo "   ⚠ Ruleset '${ruleset}' not found in CSI distribution. Skipping."
     fi
@@ -200,7 +203,7 @@ else
   echo ""
   echo "📋 Creating .csi.yml..."
 
-  # Build rulesets YAML list
+  # Build rulesets YAML list from rulesets that were actually installed
   RULESETS_YAML="[]"
   TOOLING_CURRENCY_ENABLED="true"
   DEPENDENCY_HEALTH_ENABLED="true"
@@ -210,11 +213,9 @@ else
     DEPENDENCY_HEALTH_ENABLED="false"
   fi
 
-  if [[ -n "$RULESETS" ]]; then
+  if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
     RULESETS_YAML=""
-    IFS=',' read -ra RULESET_ARRAY <<< "$RULESETS"
-    for ruleset in "${RULESET_ARRAY[@]}"; do
-      ruleset="$(echo "$ruleset" | xargs)"
+    for ruleset in "${VALID_RULESETS[@]}"; do
       RULESETS_YAML="${RULESETS_YAML}\n  - ${ruleset}"
     done
   fi
@@ -251,7 +252,7 @@ scan:
     - "dist/**"
     - ".git/**"
 
-rulesets: $(if [[ -n "$RULESETS" ]]; then echo ""; IFS=',' read -ra RA <<< "$RULESETS"; for r in "${RA[@]}"; do echo "  - $(echo "$r" | xargs)"; done; else echo "[]"; fi)
+rulesets: $(printf '%b' "$RULESETS_YAML")
 
 custom_rules: []
 CONFIG_EOF
