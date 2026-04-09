@@ -88,7 +88,7 @@ jobs:
           STALE_DAYS=$(yq -r '.stale_pr_days // 3' "$CONFIG_FILE")
           BACKEND=$(yq -r '.backend // "copilot"' "$CONFIG_FILE")
           MODEL=$(yq -r '.model // ""' "$CONFIG_FILE")
-          TIMEOUT=$(yq -r '.timeout // 900' "$CONFIG_FILE")
+          TIMEOUT=$(yq -r '.timeout // 1800' "$CONFIG_FILE")
           RULESETS=$(yq -r '(.rulesets // []) | join(",")' "$CONFIG_FILE")
 
           # Read enabled categories as a comma-separated list
@@ -360,7 +360,7 @@ jobs:
         id: scan_copilot
         env:
           COPILOT_PAT: ${{ secrets.COPILOT_TOKEN }}
-          COPILOT_TIMEOUT: ${{ steps.config.outputs.timeout }}
+          COPILOT_TIMEOUT: ${{ inputs.timeout || steps.config.outputs.timeout }}
           COPILOT_MODEL_INPUT: ${{ inputs.model || steps.config.outputs.model }}
           MODEL_PREFERENCE: ${{ env.CSI_MODEL_PREFERENCE }}
           PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
@@ -455,6 +455,7 @@ jobs:
             # Retry without -s if empty output
             echo "::warning::Empty output with -s flag. Retrying without -s..."
             > "$REPORT_FILE"
+            RETRY_EXIT=0
             env -i \
               HOME="$HOME" \
               PATH="$PATH" \
@@ -465,7 +466,14 @@ jobs:
               --agent "$AGENT_NAME" \
               --allow-all-tools \
               2>"${RUNNER_TEMP}/copilot_stderr.log" | \
-              tee "$REPORT_FILE" || true
+              tee "$REPORT_FILE" || RETRY_EXIT=$?
+
+            if [[ $RETRY_EXIT -eq 124 ]]; then
+              SCAN_TIMED_OUT=true
+              echo "::warning::Model '$MODEL' timed out on retry after ${TIMEOUT}s. Will still commit any changes made before timeout."
+              USED_MODEL="$MODEL"
+              break
+            fi
 
             LINES=$(wc -l < "$REPORT_FILE" 2>/dev/null || echo 0)
             if [[ "$LINES" -gt 0 ]]; then
@@ -478,7 +486,7 @@ jobs:
             echo "::warning::Model '$MODEL' produced no output, trying next..."
           done
 
-          if [[ "$SCAN_SUCCESS" != "true" ]]; then
+          if [[ "$SCAN_SUCCESS" != "true" ]] && [[ "$SCAN_TIMED_OUT" != "true" ]]; then
             echo "::error::All models failed to produce output. Tried: ${MODELS_TO_TRY[*]}"
             {
               echo "## CSI Scan Failed"
