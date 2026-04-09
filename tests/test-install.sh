@@ -33,11 +33,25 @@ assert_file_not_exists() {
 }
 
 assert_file_contains() {
-  if grep -q "$2" "$1" 2>/dev/null; then
+  if grep -q -- "$2" "$1" 2>/dev/null; then
     PASS=$((PASS + 1))
   else
     FAIL=$((FAIL + 1))
     echo "  FAIL: Expected '$1' to contain '$2'"
+  fi
+}
+
+assert_file_not_contains() {
+  local rc=0
+  grep -q -- "$2" "$1" 2>/dev/null || rc=$?
+  if [[ $rc -eq 1 ]]; then
+    PASS=$((PASS + 1))
+  elif [[ $rc -eq 0 ]]; then
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: Expected '$1' to NOT contain '$2'"
+  else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL: grep error (exit $rc) while checking '$1' for '$2'"
   fi
 }
 
@@ -121,6 +135,19 @@ assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
 assert_file_contains "$REPO2/.csi.yml" "tooling_currency: false"
 assert_file_contains "$REPO2/.csi.yml" "dependency_health: false"
 assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
+echo ""
+
+# ── Test 4: Unknown rulesets are omitted from config ─────────────────────
+echo "Test 4: Unknown rulesets are omitted from config"
+REPO3="$TEST_DIR/repo3"
+mkdir -p "$REPO3" && cd "$REPO3" && git init -q
+
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO3" --rulesets "python,not-a-real-ruleset"
+
+assert_file_exists "$REPO3/.github/rulesets/python.md"
+assert_file_contains "$REPO3/.csi.yml" "rulesets:"
+assert_file_contains "$REPO3/.csi.yml" "- python"
+assert_file_not_contains "$REPO3/.csi.yml" "not-a-real-ruleset"
 echo ""
 
 # ── Test 4: Uninstall preserves config ────────────────────────────────────
