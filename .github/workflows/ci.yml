@@ -24,4 +24,4 @@ jobs:
 
       - name: Run ShellCheck
         run: |
-          shellcheck install.sh uninstall.sh tests/test-install.sh
+          find install.sh uninstall.sh tests .github/scripts -type f -name '*.sh' -print0 | xargs -0 shellcheck
