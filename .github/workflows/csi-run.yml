@@ -544,7 +544,7 @@ jobs:
             --prompt-file "$PROMPT_FILE" \
             --output "$REPORT_FILE" \
             --model "${OPENAI_MODEL:-o3}" \
-            --timeout "${OPENAI_TIMEOUT:-900}" && SCAN_OK=true || {
+            --timeout "${OPENAI_TIMEOUT:-1800}" && SCAN_OK=true || {
               SCAN_OK=false
               echo "::warning::OpenAI scan exited with error"
               if [[ ! -s "$REPORT_FILE" ]]; then
