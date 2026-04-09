@@ -117,6 +117,8 @@ assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
 assert_file_contains "$REPO2/.csi.yml" "backend: openai"
 assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
+assert_file_contains "$REPO2/.csi.yml" "tooling_currency: false"
+assert_file_contains "$REPO2/.csi.yml" "dependency_health: false"
 assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
 echo ""
 

@@ -120,6 +120,7 @@ This backend can scan and report issues but **cannot apply fixes** (no tool-use 
    ```yaml
    backend: openai
    ```
+8. If you are creating a fresh config with `install.sh --backend openai`, CSI automatically sets `tooling_currency: false` and `dependency_health: false` because the OpenAI backend skips those internet-dependent categories.
 
 ---
 
