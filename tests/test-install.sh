@@ -105,6 +105,7 @@ assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
 assert_file_contains "$REPO1/.csi.yml" "timeout: 1800"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
+assert_file_contains "$REPO1/.github/workflows/csi-run.yml" 'ALL_RULESETS=("generic")'
 echo ""
 
 # ── Test 2: Idempotency — .csi.yml preserved ─────────────────────────────
