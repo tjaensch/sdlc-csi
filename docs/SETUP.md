@@ -170,7 +170,7 @@ CSI auto-detects `CSI_PAT` at runtime. When present:
 - The agent is allowed to edit `.github/workflows/` files
 - The PAT is used for push and PR creation
 
-When absent, CSI falls back to `GITHUB_TOKEN` with workflow files excluded silently.
+When absent, CSI falls back to `GITHUB_TOKEN` with workflow files excluded. For Copilot (fix-capable) runs, the workflow emits a notice indicating which mode is active; OpenAI (scan-only) runs may not print this specific notice.
 
 ---
 
@@ -188,7 +188,9 @@ This applies to all merged PRs, not just CSI.
 
 ## 7. Configure .csi.yml
 
-The installer creates a default `.csi.yml`. Here's a fully annotated example:
+The installer creates a default `.csi.yml`. For a fully documented reference configuration with all available options and their defaults, see [`examples/.csi.yml`](../examples/.csi.yml).
+
+Here's a fully annotated example:
 
 ```yaml
 version: 1

@@ -153,6 +153,8 @@ rulesets: []
 custom_rules: []
 ```
 
+> **Need a complete example?** See [`examples/.csi.yml`](examples/.csi.yml) for a fully documented configuration with all available options and their defaults.
+
 ### Configuration Reference
 
 | Field | Type | Default | Description |
