@@ -62,7 +62,7 @@ CSI needs an LLM backend. Choose one:
 
 By default, `GITHUB_TOKEN` cannot push changes to `.github/workflows/` (GitHub platform restriction). To allow CSI to fix workflow files too:
 
-- Create a fine-grained PAT with **Contents: Read and write** + **Workflows: Read and write** scopes
+- Create a fine-grained PAT with **Contents: Read and write**, **Pull requests: Read and write**, and **Workflows: Read and write** permissions
 - Add it as a secret named `CSI_PAT`
 - CSI will automatically detect it and use it for push and PR creation
 
