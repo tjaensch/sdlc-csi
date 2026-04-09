@@ -369,7 +369,8 @@ jobs:
 
           TIMEOUT="${COPILOT_TIMEOUT:-1800}"
           if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]] || (( TIMEOUT <= 0 )); then
-            TIMEOUT=1800
+            echo "::error::Invalid timeout value: '$TIMEOUT'. Must be a positive integer."
+            exit 1
           fi
 
           # Isolated auth
@@ -529,7 +530,7 @@ jobs:
         id: scan_openai
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_TIMEOUT: ${{ steps.config.outputs.timeout }}
+          OPENAI_TIMEOUT: ${{ inputs.timeout || steps.config.outputs.timeout }}
           OPENAI_MODEL: ${{ inputs.model || steps.config.outputs.model }}
           PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
         run: |
@@ -742,6 +743,7 @@ jobs:
         env:
           REPORT_FILE: ${{ steps.scan.outputs.report_file }}
           SCAN_SUCCESS: ${{ steps.scan.outputs.scan_success }}
+          SCAN_TIMED_OUT: ${{ steps.scan.outputs.scan_timed_out }}
           DATE_STAMP: ${{ steps.branch.outputs.date }}
           HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
@@ -756,7 +758,7 @@ jobs:
             echo "| **Date** | ${DATE_STAMP} |"
             echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; elif [[ \"$BACKEND\" == 'openai' ]]; then echo '🔍 Scan Only'; else echo '🔧 Scan & Fix'; fi) |"
             echo "| **Backend** | \`${BACKEND}\` |"
-            echo "| **Scan Status** | $(if [[ \"$SKIPPED\" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ \"$SCAN_SUCCESS\" == 'true' ]]; then echo '✅ Success'; else echo '❌ Failed'; fi) |"
+            echo "| **Scan Status** | $(if [[ \"$SKIPPED\" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ \"$SCAN_SUCCESS\" == 'true' ]]; then echo '✅ Success'; elif [[ \"$SCAN_TIMED_OUT\" == 'true' ]]; then echo '⏱️ Timed Out (Partial)'; else echo '❌ Failed'; fi) |"
             if [[ "$SKIPPED" != 'true' ]]; then
               echo "| **Changes Found** | $(if [[ \"$HAS_CHANGES\" == 'true' ]]; then echo 'Yes'; else echo 'No'; fi) |"
             fi
