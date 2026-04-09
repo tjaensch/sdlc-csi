@@ -233,7 +233,7 @@ stale_pr_days: 3
 
 backend: ${BACKEND}
 model: ""
-timeout: 900
+timeout: 1800
 
 scan:
   categories:
