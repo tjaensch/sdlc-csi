@@ -281,21 +281,26 @@ jobs:
           - If no issues are found, output a clean scan summary
           PROMPT_EOF
 
-          # Append rulesets
+          # Append the always-active generic ruleset, then configured language rulesets.
+          ALL_RULESETS=("generic")
           if [[ -n "$RULESETS" ]]; then
             IFS=',' read -ra RULESET_ARRAY <<< "$RULESETS"
             for ruleset in "${RULESET_ARRAY[@]}"; do
               ruleset="$(echo "$ruleset" | xargs)"
-              RULESET_FILE=".github/rulesets/${ruleset}.md"
-              if [[ -f "$RULESET_FILE" ]]; then
-                echo "" >> "$PROMPT_FILE"
-                echo "--- RULESET: ${ruleset} ---" >> "$PROMPT_FILE"
-                cat "$RULESET_FILE" >> "$PROMPT_FILE"
-              else
-                echo "::warning::Ruleset '${ruleset}' not found at ${RULESET_FILE}. Skipping."
-              fi
+              [[ -n "$ruleset" && "$ruleset" != "generic" ]] && ALL_RULESETS+=("$ruleset")
             done
           fi
+
+          for ruleset in "${ALL_RULESETS[@]}"; do
+            RULESET_FILE=".github/rulesets/${ruleset}.md"
+            if [[ -f "$RULESET_FILE" ]]; then
+              echo "" >> "$PROMPT_FILE"
+              echo "--- RULESET: ${ruleset} ---" >> "$PROMPT_FILE"
+              cat "$RULESET_FILE" >> "$PROMPT_FILE"
+            else
+              echo "::warning::Ruleset '${ruleset}' not found at ${RULESET_FILE}. Skipping."
+            fi
+          done
 
           # Append custom rules
           if [[ -n "$CUSTOM_RULES" ]]; then
