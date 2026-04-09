@@ -212,7 +212,7 @@ rulesets:
   - my-custom-rules   # reads .github/rulesets/my-custom-rules.md
 ```
 
-Follow the pattern in existing rulesets under `rulesets/` — use `<LANG>-NNN` IDs, short titles, and actionable descriptions.
+Follow the pattern in existing rulesets under `.github/rulesets/` in an installed CSI repo — use `<LANG>-NNN` IDs, short titles, and actionable descriptions.
 
 ## Backends
 
