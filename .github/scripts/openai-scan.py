@@ -252,18 +252,18 @@ def main() -> None:
         counts to 0 in the Scan Summary and mark them as "⏭ Skipped (requires internet)".
 
         IMPORTANT RULES:
-        - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary).
+        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary).
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
-        - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
-          This is intentionally different from the Copilot agent's "Applied Fix" header
-          because this backend only scans — it never modifies files. Do NOT change this.
+        - The first section MUST be titled "## Applied Fix" to match the CSI report
+          contract used by the Copilot backend and workflow consumers, even though
+          this backend only scans and never modifies files.
         - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
         - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
 
         Output your response in this EXACT format (do not deviate):
 
-        ## Scan Results
+        ## Applied Fix
 
         **Issue ID**: <ID or None>
         **Category**: <category or None>
