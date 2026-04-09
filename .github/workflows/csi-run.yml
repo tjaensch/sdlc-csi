@@ -751,7 +751,7 @@ jobs:
       # ── Upload report artifact ───────────────────────────────────────
       - name: Upload CSI report
         if: always() && steps.scan.outputs.report_file != ''
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: csi-report-${{ steps.branch.outputs.date }}
           path: ${{ steps.scan.outputs.report_file }}
