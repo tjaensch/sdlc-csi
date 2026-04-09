@@ -249,6 +249,9 @@ def main() -> None:
         - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
           This is intentionally different from the Copilot agent's "Applied Fix" header
           because this backend only scans — it never modifies files. Do NOT change this.
+        - Do NOT flag external dependency versions, action versions, or package versions
+          as invalid or nonexistent. You do not have internet access and your training data
+          may be outdated. Only report issues you can verify from the code itself.
         - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
         - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
