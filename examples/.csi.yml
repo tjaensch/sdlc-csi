@@ -30,8 +30,8 @@ backend: copilot
 # Examples: "gpt-4o", "claude-sonnet-4", "gpt-5.4"
 # model: "gpt-5.4"
 
-# Maximum time in seconds for the scan (default: 900 = 15 min).
-timeout: 900
+# Maximum time in seconds for the scan (default: 1800 = 30 min).
+timeout: 1800
 
 # ── Scan categories ──────────────────────────────────────────────────────
 # Toggle individual scan categories on or off.
