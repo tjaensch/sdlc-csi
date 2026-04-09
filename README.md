@@ -287,7 +287,7 @@ gh workflow run csi-run.yml -f dry_run=true
 gh workflow run csi-run.yml
 
 # With a specific model
-gh workflow run csi-run.yml -f model=o3
+gh workflow run csi-run.yml -f model=gpt-5.4
 ```
 
 ## ⚠️ Disclaimer
