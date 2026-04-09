@@ -23,7 +23,7 @@ stale_pr_days: 3
 # ── LLM Backend ──────────────────────────────────────────────────────────
 # "copilot" — GitHub Copilot CLI (requires COPILOT_TOKEN secret)
 # "openai"  — OpenAI API (requires OPENAI_API_KEY secret; scan-only, no auto-fix)
-backend: copilot
+backend: openai
 
 # Override the LLM model. Leave empty to use the workflow default.
 # Examples: "gpt-4o", "claude-sonnet-4", "gpt-5.4"
