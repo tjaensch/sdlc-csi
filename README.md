@@ -49,11 +49,12 @@ bash csi/install.sh --repo-path /path/to/your-repo --rulesets "python,javascript
 CSI needs an LLM backend. Choose one:
 
 **GitHub Copilot (recommended — full scan + auto-fix):**
-- Go to your repo → Settings → Secrets → Actions → New repository secret
+- Go to your repo → Settings → Secrets and variables → Actions → New repository secret
 - Name: `COPILOT_TOKEN`
 - Value: A GitHub PAT with Copilot access
 
 **OpenAI (scan-only, no auto-fix):**
+- Go to your repo → Settings → Secrets and variables → Actions → New repository secret
 - Name: `OPENAI_API_KEY`
 - Value: Your OpenAI API key
 - Set `backend: openai` in `.csi.yml`
@@ -63,7 +64,7 @@ CSI needs an LLM backend. Choose one:
 By default, `GITHUB_TOKEN` cannot push changes to `.github/workflows/` (GitHub platform restriction). To allow CSI to fix workflow files too:
 
 - Create a fine-grained PAT with **Contents: Read and write**, **Pull requests: Read and write**, and **Workflows: Read and write** permissions
-- Add it as a secret named `CSI_PAT`
+- Add it as a repository secret named `CSI_PAT`
 - CSI will automatically detect it and use it for push and PR creation
 
 ### 3. Enable PR Creation
