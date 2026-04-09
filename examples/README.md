@@ -71,10 +71,14 @@ model: "gpt-4o"
 
 scan:
   categories:
-    security_hygiene: true
-    dependency_health: true
+    documentation_drift: true
     code_quality: true
-    # Disable categories that benefit more from auto-fix
+    security_hygiene: true
+    config_consistency: true
+    # OpenAI scans skip these internet-dependent categories.
+    tooling_currency: false
+    dependency_health: false
+    # Disable categories that benefit more from auto-fix.
     dry_violations: false
     dead_code: false
 ```

@@ -202,6 +202,14 @@ else
 
   # Build rulesets YAML list
   RULESETS_YAML="[]"
+  TOOLING_CURRENCY_ENABLED="true"
+  DEPENDENCY_HEALTH_ENABLED="true"
+
+  if [[ "$BACKEND" == "openai" ]]; then
+    TOOLING_CURRENCY_ENABLED="false"
+    DEPENDENCY_HEALTH_ENABLED="false"
+  fi
+
   if [[ -n "$RULESETS" ]]; then
     RULESETS_YAML=""
     IFS=',' read -ra RULESET_ARRAY <<< "$RULESETS"
@@ -231,11 +239,11 @@ scan:
   categories:
     dry_violations: true
     documentation_drift: true
-    tooling_currency: true
+    tooling_currency: ${TOOLING_CURRENCY_ENABLED}
     dead_code: true
     code_quality: true
     security_hygiene: true
-    dependency_health: true
+    dependency_health: ${DEPENDENCY_HEALTH_ENABLED}
     config_consistency: true
   exclude_paths:
     - "vendor/**"
