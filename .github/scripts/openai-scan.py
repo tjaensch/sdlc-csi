@@ -237,11 +237,19 @@ def main() -> None:
     system_message = textwrap.dedent(f"""\
         You are a repository maintenance scanner. You analyze codebases for
         maintenance issues across these categories: DRY violations, documentation
-        drift, tooling currency, dead code, code quality, security hygiene,
-        dependency health, and config consistency.
+        drift, dead code, code quality, security hygiene, and config consistency.
 
         You are running in SCAN-ONLY mode. You cannot edit files. Your job is to
         produce a structured report of your findings.
+
+        IMPORTANT — EXCLUDED CATEGORIES:
+        The following categories are EXCLUDED from OpenAI scans because they
+        require internet access to verify external resources, which this backend
+        does not have:
+        - TOOLING_CURRENCY (e.g. "is this the latest action version?")
+        - DEPENDENCY_HEALTH (e.g. "is this package still maintained?")
+        Do NOT report any findings under these two categories. Always set their
+        counts to 0 in the Scan Summary and mark them as "⏭ Skipped (requires internet)".
 
         IMPORTANT RULES:
         - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary).
@@ -249,9 +257,6 @@ def main() -> None:
         - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
           This is intentionally different from the Copilot agent's "Applied Fix" header
           because this backend only scans — it never modifies files. Do NOT change this.
-        - Do NOT flag external dependency versions, action versions, or package versions
-          as invalid or nonexistent. You do not have internet access and your training data
-          may be outdated. Only report issues you can verify from the code itself.
         - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
         - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
@@ -285,8 +290,8 @@ def main() -> None:
         3. **[CATEGORY_NAME] 🟢 LOW**: Description — `file:line` evidence
 
         Valid CATEGORY_NAME values (use these exactly, in square brackets):
-        DRY_VIOLATIONS, DOCUMENTATION_DRIFT, TOOLING_CURRENCY, DEAD_CODE,
-        CODE_QUALITY, SECURITY_HYGIENE, DEPENDENCY_HEALTH, CONFIG_CONSISTENCY
+        DRY_VIOLATIONS, DOCUMENTATION_DRIFT, DEAD_CODE,
+        CODE_QUALITY, SECURITY_HYGIENE, CONFIG_CONSISTENCY
 
         ---
 
@@ -296,13 +301,18 @@ def main() -> None:
         |----------|-------------|
         | DRY Violations | X |
         | Documentation Drift | X |
-        | Tooling Currency | X |
+        | Tooling Currency | ⏭ Skipped (requires internet) |
         | Dead Code | X |
         | Code Quality | X |
         | Security Hygiene | X |
-        | Dependency Health | X |
+        | Dependency Health | ⏭ Skipped (requires internet) |
         | Config Consistency | X |
         | **Total** | **X** |
+
+        > **Note:** Tooling Currency and Dependency Health are excluded from OpenAI scans.
+        > These categories require internet access to verify external resources (package
+        > registries, GitHub releases, etc.), which the OpenAI backend does not have.
+        > Use the Copilot backend for full-category coverage.
 
         *Scan completed: {scan_timestamp}*
     """)

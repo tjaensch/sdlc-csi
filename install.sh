@@ -91,6 +91,11 @@ echo "   Backend:  $BACKEND"
 echo "   Branch:   $BRANCH"
 echo "   Schedule: $SCHEDULE"
 [[ -n "$RULESETS" ]] && echo "   Rulesets: $RULESETS"
+if [[ "$BACKEND" == "openai" ]]; then
+  echo ""
+  echo "   ⚠ OpenAI backend: Tooling Currency and Dependency Health categories"
+  echo "     are excluded (no internet access to verify external resources)."
+fi
 
 # ── Helper: copy file with optional force ─────────────────────────────────
 copy_file() {

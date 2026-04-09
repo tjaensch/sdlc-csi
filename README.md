@@ -227,6 +227,7 @@ Follow the pattern in existing rulesets under `rulesets/` — use `<LANG>-NNN` I
 - Reads source files (`.go`, `.py`, `.js`, `.ts`, etc.) into context for code-level analysis
 - Default model: `o3` (configurable via `model` field)
 - Existing open CSI PRs do not block OpenAI scans
+- **Excluded categories:** Tooling Currency and Dependency Health are skipped because the OpenAI backend has no internet access to verify external resources (package registries, GitHub releases, etc.)
 
 ## Installer Options
 
