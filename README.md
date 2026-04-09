@@ -215,12 +215,14 @@ Follow the pattern in existing rulesets under `rulesets/` — use `<LANG>-NNN` I
 
 ### GitHub Copilot (recommended)
 
+- **Agentic** — runs as an interactive agent with tool access (file browsing, `editFiles`)
 - Full scan **and** auto-fix — the agent can edit files and create PRs
 - Requires `COPILOT_TOKEN` secret (GitHub PAT with Copilot access)
 - Uses the [Copilot CLI](https://github.com/github/copilot-cli) under the hood
 
 ### OpenAI
 
+- **Single-prompt** — the entire repo is sent as context in one API call; the model returns a report in a single response (no tool calls or agent loop)
 - **Scan-only** — generates a report but cannot edit files
 - Requires `OPENAI_API_KEY` secret
 - Useful for getting a health report without automated changes
