@@ -210,7 +210,7 @@ backend: copilot
 # model: "gpt-5.4"
 
 # Scan timeout in seconds
-timeout: 900
+timeout: 1800
 
 # Toggle scan categories on/off
 scan:
