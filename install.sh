@@ -305,15 +305,24 @@ else
   echo "📋 Creating .csi.yml..."
 
   cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
-  sync_existing_schedule "$CSI_CONFIG"
-  sync_existing_base_branch "$CSI_CONFIG"
+  if ! sync_existing_schedule "$CSI_CONFIG"; then
+    echo "   ⚠ Template .csi.yml missing 'schedule' key" >&2
+    exit 1
+  fi
+  if ! sync_existing_base_branch "$CSI_CONFIG"; then
+    echo "   ⚠ Template .csi.yml missing 'base_branch' key" >&2
+    exit 1
+  fi
 
   if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
       RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"
     done
-    sync_existing_rulesets "$CSI_CONFIG" "$RULESETS_YAML"
+    if ! sync_existing_rulesets "$CSI_CONFIG" "$RULESETS_YAML"; then
+      echo "   ⚠ Template .csi.yml missing 'rulesets' key" >&2
+      exit 1
+    fi
   fi
 
   echo "   ✓ Created: $CSI_CONFIG"
