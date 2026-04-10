@@ -193,7 +193,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="OpenAI-backed CSI scanner")
     parser.add_argument("--prompt-file", required=False, help="Path to the agent prompt file")
     parser.add_argument("--output", required=True, help="Path to write the report")
-    parser.add_argument("--model", default="o3", help="OpenAI model to use")
+    parser.add_argument("--model", default="gpt-5.4", help="OpenAI model to use")
     parser.add_argument("--timeout", type=int, default=900, help="Timeout in seconds")
     parser.add_argument("--fallback-report", metavar="MSG", help="Write a CSI-formatted failure report with the given error message and exit")
     args = parser.parse_args()
