@@ -25,7 +25,7 @@ stale_pr_days: 3
 # ── LLM Backend ──────────────────────────────────────────────────────────
 # "copilot" — GitHub Copilot CLI (requires COPILOT_TOKEN secret)
 # "openai"  — OpenAI API (requires OPENAI_API_KEY secret; scan-only, no auto-fix)
-backend: openai
+backend: copilot
 
 # Override the LLM model. Leave empty to auto-select from the workflow's
 # preference list (tries models in order until one works).
