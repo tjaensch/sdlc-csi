@@ -213,15 +213,20 @@ assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "# Usage:"
 assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "set -euo pipefail"
 echo ""
 
-# ── Test 10: Sanitize modern API keys ─────────────────────────────────────
-echo "Test 10: Sanitize modern API keys"
+# ── Test 10: Sanitize modern API keys and workflow PATs ───────────────────
+echo "Test 10: Sanitize modern API keys and workflow PATs"
 SANITIZE_INPUT="$TEST_DIR/sanitize-input.txt"
 SANITIZE_OUTPUT="$TEST_DIR/sanitize-output.txt"
-printf '%s\n' 'Token seen: sk-proj-abcdefghijklmnopqrstuvwxyz1234567890' > "$SANITIZE_INPUT"
+cat > "$SANITIZE_INPUT" <<'EOF'
+Token seen: sk-proj-abcdefghijklmnopqrstuvwxyz1234567890
+CSI_PAT=github_pat_abcdefghijklmnopqrstuvwxyz1234567890
+EOF
 bash "$SCRIPT_DIR/.github/scripts/sanitize-report.sh" "$SANITIZE_INPUT" "$SANITIZE_OUTPUT"
 SANITIZED_CONTENT="$(cat "$SANITIZE_OUTPUT")"
 assert_output_contains "$SANITIZED_CONTENT" "[REDACTED_TOKEN]"
+assert_output_contains "$SANITIZED_CONTENT" "CSI_PAT=[REDACTED]"
 assert_output_not_contains "$SANITIZED_CONTENT" "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
+assert_output_not_contains "$SANITIZED_CONTENT" "CSI_PAT=github_pat_abcdefghijklmnopqrstuvwxyz1234567890"
 echo ""
 
 # ── Test 11: Invalid schedule characters rejected ─────────────────────────
