@@ -54,7 +54,7 @@ jobs:
     steps:
       # ── Read .csi.yml configuration ──────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -148,7 +148,7 @@ jobs:
 
       # ── Re-checkout on configured base branch ────────────────────────
       - name: Checkout base branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ steps.config.outputs.base_branch }}
           fetch-depth: 0
@@ -804,7 +804,7 @@ jobs:
 
     steps:
       - name: Checkout for config
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           sparse-checkout: .csi.yml
           sparse-checkout-cone-mode: false
