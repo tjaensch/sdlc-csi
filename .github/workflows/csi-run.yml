@@ -292,7 +292,12 @@ jobs:
           fi
 
           for ruleset in "${ALL_RULESETS[@]}"; do
-            RULESET_FILE=".github/rulesets/${ruleset}.md"
+            # Prefer source rulesets/ (CSI repo) over installed .github/rulesets/
+            if [[ -f "rulesets/${ruleset}.md" ]]; then
+              RULESET_FILE="rulesets/${ruleset}.md"
+            else
+              RULESET_FILE=".github/rulesets/${ruleset}.md"
+            fi
             if [[ -f "$RULESET_FILE" ]]; then
               echo "" >> "$PROMPT_FILE"
               echo "--- RULESET: ${ruleset} ---" >> "$PROMPT_FILE"
