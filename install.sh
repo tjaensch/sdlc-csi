@@ -246,59 +246,51 @@ else
   echo ""
   echo "📋 Creating .csi.yml..."
 
-  # Build rulesets YAML list from rulesets that were actually installed
-  RULESETS_YAML="[]"
-  TOOLING_CURRENCY_ENABLED="true"
-  DEPENDENCY_HEALTH_ENABLED="true"
+  cp "$SCRIPT_DIR/examples/.csi.yml" "$CSI_CONFIG"
 
-  if [[ "$BACKEND" == "openai" ]]; then
-    TOOLING_CURRENCY_ENABLED="false"
-    DEPENDENCY_HEALTH_ENABLED="false"
-  fi
+  python3 - "$CSI_CONFIG" "$SCHEDULE" "$BRANCH" "$BACKEND" "${VALID_RULESETS[@]}" <<'PY'
+from pathlib import Path
+import sys
 
-  if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
-    RULESETS_YAML=""
-    for ruleset in "${VALID_RULESETS[@]}"; do
-      RULESETS_YAML="${RULESETS_YAML}\n  - ${ruleset}"
-    done
-  fi
+config_path = Path(sys.argv[1])
+schedule = sys.argv[2]
+base_branch = sys.argv[3]
+backend = sys.argv[4]
+rulesets = sys.argv[5:]
 
-  cat > "$CSI_CONFIG" << CONFIG_EOF
-# ─────────────────────────────────────────────────────────────────────────────
-# .csi.yml — Continuous Self-Improvement configuration
-# ─────────────────────────────────────────────────────────────────────────────
-# Documentation: https://github.com/tjaensch/csi#configuration
-# ─────────────────────────────────────────────────────────────────────────────
-version: 1
+lines = config_path.read_text(encoding="utf-8").splitlines()
+output = []
+i = 0
 
-schedule: "${SCHEDULE}"
-base_branch: ${BRANCH}
-stale_pr_days: 3
+while i < len(lines):
+    line = lines[i]
 
-backend: ${BACKEND}
-model: ""
-timeout: 1800
+    if line.startswith("schedule:"):
+        output.append(f'schedule: "{schedule}"')
+    elif line.startswith("base_branch:"):
+        output.append(f"base_branch: {base_branch}")
+    elif line.startswith("backend:"):
+        output.append(f"backend: {backend}")
+    elif line.strip() == "tooling_currency: true" and backend == "openai":
+        output.append("    tooling_currency: false")
+    elif line.strip() == "dependency_health: true" and backend == "openai":
+        output.append("    dependency_health: false")
+    elif line.startswith("rulesets:"):
+        if rulesets:
+            output.append("rulesets:")
+            output.extend(f"  - {ruleset}" for ruleset in rulesets)
+            i += 1
+            while i < len(lines) and (lines[i].startswith("  - ") or lines[i].startswith("  # - ")):
+                i += 1
+            continue
+        output.append("rulesets: []")
+    else:
+        output.append(line)
 
-scan:
-  categories:
-    dry_violations: true
-    documentation_drift: true
-    tooling_currency: ${TOOLING_CURRENCY_ENABLED}
-    dead_code: true
-    code_quality: true
-    security_hygiene: true
-    dependency_health: ${DEPENDENCY_HEALTH_ENABLED}
-    config_consistency: true
-  exclude_paths:
-    - "vendor/**"
-    - "node_modules/**"
-    - "dist/**"
-    - ".git/**"
+    i += 1
 
-rulesets: $(printf '%b' "$RULESETS_YAML")
-
-custom_rules: []
-CONFIG_EOF
+config_path.write_text("\n".join(output) + "\n", encoding="utf-8")
+PY
 
   echo "   ✓ Created: $CSI_CONFIG"
 fi
