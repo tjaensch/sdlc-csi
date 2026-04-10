@@ -46,7 +46,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      issues: write
     concurrency:
       group: csi-scan-and-fix
       cancel-in-progress: true
