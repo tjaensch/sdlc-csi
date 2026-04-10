@@ -10,7 +10,8 @@ version: 1
 
 # ── Schedule ──────────────────────────────────────────────────────────────
 # Cron expression for automated scans (UTC). Default: weekly Monday 10:00 UTC.
-# Set to empty string "" to disable scheduled runs (manual dispatch only).
+# This value is written into .github/workflows/csi-run.yml during install.
+# To change it later, re-run install.sh with --schedule (or edit the workflow cron directly).
 schedule: "0 10 * * 1"
 
 # ── Branch settings ───────────────────────────────────────────────────────
