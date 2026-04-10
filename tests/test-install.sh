@@ -254,6 +254,24 @@ else
 fi
 echo ""
 
+# ── Test 13: Reject non-copilot --backend values ─────────────────────────
+echo "Test 13: Reject --backend openai"
+REPO_BACKEND="$TEST_DIR/repo_backend"
+mkdir -p "$REPO_BACKEND" && cd "$REPO_BACKEND" && git init -q
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_BACKEND" --backend "openai" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected backend 'openai'"
+else
+  PASS=$((PASS + 1))
+fi
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_BACKEND" --backend "foo" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected backend 'foo'"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
 # ── Results ───────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Results: $PASS passed, $FAIL failed"
