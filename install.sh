@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     --rulesets)
       shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; shift ;;
     --backend)
-      shift; BACKEND="${1:?--backend requires 'copilot' or 'openai'}"; shift ;;
+      shift; BACKEND="${1:?--backend requires 'copilot'}"; shift ;;
     --branch)
       shift; BRANCH="${1:?--branch requires a branch name}"; shift ;;
     --schedule)
@@ -60,7 +60,7 @@ Usage:
 Options:
   --repo-path <path>       Target repository root (default: current directory)
   --rulesets <list>         Comma-separated rulesets to enable (e.g., "python,javascript")
-  --backend <name>         LLM backend: "copilot" or "openai" (default: copilot)
+  --backend <name>         LLM backend: "copilot" (default: copilot)
   --branch <name>          Base branch for PRs (default: main)
   --schedule <cron>        Cron schedule for automated scans (default: "0 10 * * 1")
   --force                  Overwrite existing CSI files (except .csi.yml)
@@ -83,8 +83,8 @@ if [[ ! -d "$REPO_PATH/.git" ]]; then
   exit 1
 fi
 
-if [[ "$BACKEND" != "copilot" && "$BACKEND" != "openai" ]]; then
-  echo "Error: Backend must be 'copilot' or 'openai', got '$BACKEND'." >&2
+if [[ "$BACKEND" != "copilot" ]]; then
+  echo "Error: Backend must be 'copilot', got '$BACKEND'." >&2
   exit 1
 fi
 
@@ -93,11 +93,6 @@ echo "   Backend:  $BACKEND"
 echo "   Branch:   $BRANCH"
 echo "   Schedule: $SCHEDULE"
 [[ -n "$RULESETS" ]] && echo "   Rulesets: $RULESETS"
-if [[ "$BACKEND" == "openai" ]]; then
-  echo ""
-  echo "   ⚠ OpenAI backend: Tooling Currency and Dependency Health categories"
-  echo "     are excluded (no internet access to verify external resources)."
-fi
 
 # ── Helper: copy file with optional force ─────────────────────────────────
 copy_file() {
@@ -169,7 +164,6 @@ fi
 copy_file "$SCRIPT_DIR/.github/agents/csi-maintainer.agent.md" "$REPO_PATH/.github/agents/csi-maintainer.agent.md"
 copy_file "$SCRIPT_DIR/.github/scripts/install-copilot-cli.sh" "$REPO_PATH/.github/scripts/install-copilot-cli.sh"
 copy_file "$SCRIPT_DIR/.github/scripts/sanitize-report.sh" "$REPO_PATH/.github/scripts/sanitize-report.sh"
-copy_file "$SCRIPT_DIR/.github/scripts/openai-scan.py" "$REPO_PATH/.github/scripts/openai-scan.py"
 
 # Make scripts executable
 chmod +x "$REPO_PATH/.github/scripts/install-copilot-cli.sh"
@@ -248,13 +242,6 @@ else
 
   # Build rulesets YAML list from rulesets that were actually installed
   RULESETS_YAML="[]"
-  TOOLING_CURRENCY_ENABLED="true"
-  DEPENDENCY_HEALTH_ENABLED="true"
-
-  if [[ "$BACKEND" == "openai" ]]; then
-    TOOLING_CURRENCY_ENABLED="false"
-    DEPENDENCY_HEALTH_ENABLED="false"
-  fi
 
   if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
     RULESETS_YAML=""
@@ -283,11 +270,11 @@ scan:
   categories:
     dry_violations: true
     documentation_drift: true
-    tooling_currency: ${TOOLING_CURRENCY_ENABLED}
+    tooling_currency: true
     dead_code: true
     code_quality: true
     security_hygiene: true
-    dependency_health: ${DEPENDENCY_HEALTH_ENABLED}
+    dependency_health: true
     config_consistency: true
   exclude_paths:
     - "vendor/**"
@@ -316,13 +303,6 @@ if [[ "$BACKEND" == "copilot" ]]; then
   echo "     Settings → Secrets and variables → Actions → New repository secret"
   echo "     Name: COPILOT_TOKEN"
   echo "     Value: A GitHub PAT with Copilot access"
-  echo ""
-elif [[ "$BACKEND" == "openai" ]]; then
-  echo "  1. Add the OPENAI_API_KEY secret to your repository:"
-  echo "     Settings → Secrets and variables → Actions → New repository secret"
-  echo "     Name: OPENAI_API_KEY"
-  echo "     Value: Your OpenAI API key"
-  echo "     ⚠ Note: OpenAI backend is scan-only (no auto-fix). Use Copilot for full functionality."
   echo ""
 fi
 

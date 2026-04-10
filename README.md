@@ -14,8 +14,7 @@ Weekly Schedule (or manual trigger)
 │  1. Read .csi.yml config        │
 │  2. Build agent prompt          │
 │     + enabled rulesets          │
-│  3. Run LLM scan (Copilot/     │
-│     OpenAI)                     │
+│  3. Run LLM scan (Copilot)     │
 │  4. Apply ONE fix               │
 │  5. Open PR with report         │
 └─────────────────────────────────┘
@@ -53,7 +52,7 @@ gh workflow run csi-run.yml -f dry_run=true   # scan only (no PR)
 gh workflow run csi-run.yml                    # scan + fix + open PR
 ```
 
-> **Need more detail?** The full [Setup Guide](docs/SETUP.md) covers token creation, OpenAI backend, workflow file permissions, troubleshooting, and all configuration options.
+> **Need more detail?** The full [Setup Guide](docs/SETUP.md) covers token creation, workflow file permissions, troubleshooting, and all configuration options.
 
 ## What It Scans
 
@@ -76,7 +75,7 @@ CSI is configured via `.csi.yml` in your repository root. The installer creates 
 version: 1
 schedule: "0 10 * * 1"        # weekly Monday 10:00 UTC
 base_branch: main
-backend: copilot               # or "openai" (scan-only)
+backend: copilot
 rulesets:
   - python
   - javascript
@@ -153,7 +152,7 @@ Weekly is a good default for most repos. High-activity repos might benefit from 
 CSI applies one minimal fix per run and opens a PR for human review. It never pushes directly to your default branch. All changes are backward-compatible by design.
 
 **Q: Can I use CSI on private repos?**
-Yes. The Copilot backend requires a PAT with appropriate access. The OpenAI backend works with any repo since it reads files locally in the runner.
+Yes. The Copilot backend requires a PAT with appropriate access.
 
 **Q: What if the fix is wrong?**
 Close the PR. CSI will re-evaluate the issue in a future run. You can also add `custom_rules` to guide the agent's behavior.
