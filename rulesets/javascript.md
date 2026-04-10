@@ -1,6 +1,7 @@
-# JavaScript / TypeScript Ruleset — JS/TS Best Practices
+# JavaScript Ruleset — JavaScript Best Practices
 
 Activate by adding `javascript` to the `rulesets` list in `.csi.yml`.
+For TypeScript-specific rules, also add the `typescript` ruleset.
 
 ## Rules
 
@@ -13,8 +14,8 @@ Use a structured logging library (e.g., `winston`, `pino`) instead of `console.l
 ### JS-003: ESLint or Biome config should exist
 Projects should have a linter configuration file (`.eslintrc.*`, `eslint.config.*`, or `biome.json`). If present, it should be enforced in CI.
 
-### JS-004: TypeScript strict mode recommended
-`tsconfig.json` should enable `"strict": true` or at minimum `"strictNullChecks": true` and `"noImplicitAny": true`.
+### JS-004: Pin Node.js version
+Use an `.nvmrc`, `.node-version`, or `engines` field in `package.json` to declare the required Node.js version. This prevents "works on my machine" issues across environments.
 
 ### JS-005: No deprecated packages
 Replace known deprecated packages: `request` → `got`/`axios`, `moment` → `dayjs`/`date-fns`, `tslint` → `eslint`, `colors` → `chalk`/`picocolors`.
@@ -25,8 +26,8 @@ The `node_modules/` directory must appear in `.gitignore`.
 ### JS-007: Scripts in `package.json` should exist
 Scripts referenced in `package.json` `"scripts"` should point to files or commands that exist.
 
-### JS-008: No `any` type in TypeScript (prefer `unknown`)
-Avoid `any` type annotations. Use `unknown` with type narrowing, or define proper interfaces/types.
+### JS-008: Use `===` and `!==` over `==` and `!=`
+Always use strict equality (`===` / `!==`) to avoid JavaScript's implicit type coercion rules, which cause subtle bugs (e.g., `0 == ""` is `true`).
 
 ### JS-009: Use `const` and `let` over `var`
 Modern code should use `const` (preferred) or `let` instead of `var`.
