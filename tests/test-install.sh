@@ -140,6 +140,8 @@ bash "$SCRIPT_DIR/install.sh" \
 assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
 assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
+assert_file_contains "$REPO2/.csi.yml" "- python"
+assert_file_contains "$REPO2/.csi.yml" "- javascript"
 assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
 echo ""
 

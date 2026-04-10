@@ -273,7 +273,7 @@ sync_existing_rulesets() {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
         printf "rulesets:%s\n", cr
         for (i = 1; i <= count; i++) {
-          print lines[i]
+          printf "%s%s\n", lines[i], cr
         }
         updated = 1
         next
@@ -311,7 +311,7 @@ else
   if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
-      RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}\n}  - ${ruleset}"
+      RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"
     done
     sync_existing_rulesets "$CSI_CONFIG" "$RULESETS_YAML"
   fi
