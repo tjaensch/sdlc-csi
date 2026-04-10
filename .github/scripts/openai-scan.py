@@ -141,7 +141,7 @@ def build_scan_failure_report(error_message: str) -> str:
 
     return textwrap.dedent(
         f"""\
-        ## Scan Results
+        ## Applied Fix
 
         **Issue ID**: CSI-CONFIG-001
         **Category**: CONFIG
@@ -149,7 +149,7 @@ def build_scan_failure_report(error_message: str) -> str:
         **Description**: OpenAI scan backend could not complete.
 
         ### What Changed
-        No files were modified. This is a scan-only report from the OpenAI backend.
+        No files were modified. The OpenAI backend is scan-only, so CSI could not apply a fix after the backend failure.
 
         ### Evidence
         `.github/scripts/openai-scan.py` fallback report: `{normalized_error}`
@@ -252,18 +252,17 @@ def main() -> None:
         counts to 0 in the Scan Summary and mark them as "⏭ Skipped (requires internet)".
 
         IMPORTANT RULES:
-        - Always include ALL three sections (Scan Results, Remaining Issues, Scan Summary).
+        - Always include ALL three sections (Applied Fix, Remaining Issues, Scan Summary).
         - If no issues are found, set all counts to 0 and write "✅ No maintenance issues detected. Repository is in good health." under Remaining Issues.
-        - The first section MUST be titled "## Scan Results" (NOT "Applied Fix").
-          This is intentionally different from the Copilot agent's "Applied Fix" header
-          because this backend only scans — it never modifies files. Do NOT change this.
+        - The first section MUST be titled "## Applied Fix" even though this backend is scan-only.
+          In the What Changed section, make it explicit that no files were modified.
         - In Remaining Issues, each item MUST use square brackets around the category name, e.g. **[CODE_QUALITY]** not **Code Quality**.
         - Use the exact timestamp provided below — do NOT generate your own.
         - The *Scan completed:* line must always be the very last line of your output.
 
         Output your response in this EXACT format (do not deviate):
 
-        ## Scan Results
+        ## Applied Fix
 
         **Issue ID**: <ID or None>
         **Category**: <category or None>

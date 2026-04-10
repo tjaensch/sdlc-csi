@@ -233,7 +233,8 @@ fi
 
 if [[ -f "$FALLBACK_REPORT" ]]; then
   FALLBACK_OUTPUT="$(cat "$FALLBACK_REPORT")"
-  assert_output_contains "$FALLBACK_OUTPUT" "## Scan Results"
+  assert_output_contains "$FALLBACK_OUTPUT" "## Applied Fix"
+  assert_output_not_contains "$FALLBACK_OUTPUT" "## Scan Results"
   assert_output_contains "$FALLBACK_OUTPUT" "## Remaining Issues"
   assert_output_contains "$FALLBACK_OUTPUT" "**[CONFIG_CONSISTENCY] 🔴 HIGH**"
 else
