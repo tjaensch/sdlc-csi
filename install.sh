@@ -15,6 +15,7 @@ RULESETS=""
 BACKEND="copilot"
 BRANCH="main"
 SCHEDULE="0 10 * * 1"
+SCHEDULE_SET=false
 FORCE=false
 
 # ── Parse arguments ───────────────────────────────────────────────────────
@@ -30,6 +31,7 @@ while [[ $# -gt 0 ]]; do
       shift; BRANCH="${1:?--branch requires a branch name}"; shift ;;
     --schedule)
       shift; SCHEDULE="${1:?--schedule requires a cron expression}"
+      SCHEDULE_SET=true
       if [[ ! "$SCHEDULE" =~ ^[0-9\ \*,\-/]+$ ]]; then
         echo "Error: --schedule contains invalid characters. Only digits, spaces, *, comma, dash, and / are allowed." >&2
         exit 1
@@ -194,11 +196,52 @@ if [[ -n "$RULESETS" ]]; then
   done
 fi
 
+# ── Helper: sync schedule in an existing .csi.yml when explicitly requested ─
+sync_existing_schedule() {
+  local config_path="$1"
+
+  (
+    local tmp_config
+    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    trap 'rm -f "$tmp_config"' EXIT
+
+    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
+      :
+    else
+      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
+      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
+    fi
+
+    if ! awk -v schedule="$SCHEDULE" '
+      BEGIN { updated = 0 }
+      /^schedule:[[:space:]]*/ && updated == 0 {
+        cr = (substr($0, length($0)) == "\r") ? "\r" : ""
+        printf "schedule: \"%s\"%s\n", schedule, cr
+        updated = 1
+        next
+      }
+      { print }
+      END { exit(updated ? 0 : 1) }
+    ' "$config_path" > "$tmp_config"; then
+      exit 1
+    fi
+
+    mv "$tmp_config" "$config_path"
+  )
+}
+
 # ── Generate .csi.yml if missing ─────────────────────────────────────────
 CSI_CONFIG="$REPO_PATH/.csi.yml"
 if [[ -f "$CSI_CONFIG" ]]; then
   echo ""
   echo "📋 .csi.yml already exists — preserving your configuration."
+  if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "true" ]]; then
+    if sync_existing_schedule "$CSI_CONFIG"; then
+      echo "   ✓ Updated schedule in: $CSI_CONFIG"
+    else
+      echo "   ⚠ Could not update schedule in: $CSI_CONFIG"
+    fi
+  fi
 else
   echo ""
   echo "📋 Creating .csi.yml..."
