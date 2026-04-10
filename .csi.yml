@@ -25,9 +25,10 @@ stale_pr_days: 3
 # "openai"  — OpenAI API (requires OPENAI_API_KEY secret; scan-only, no auto-fix)
 backend: copilot
 
-# Override the LLM model. Leave empty to use the workflow default.
+# Override the LLM model. Leave empty to auto-select from the workflow's
+# preference list (tries models in order until one works).
 # Examples: "gpt-4o", "claude-sonnet-4", "gpt-5.4"
-model: ""
+# model: "gpt-5.4"
 
 # Maximum time in seconds for the scan (default: 1800 = 30 min).
 timeout: 1800
@@ -54,25 +55,27 @@ scan:
 
 # ── Rulesets ─────────────────────────────────────────────────────────────
 # Which language-aware rule packs to apply alongside the always-included
-# "generic" ruleset. Available: bash, powershell, python, javascript, java,
-# go, rust, ruby, kotlin, swift, php, terraform, docker, dotnet, nextflow,
-# kubernetes, sql, typescript
+# "generic" ruleset. Available: bash, docker, dotnet, go, java, javascript,
+# kotlin, kubernetes, nextflow, php, powershell, python, ruby, rust, sql,
+# swift, terraform, typescript
 rulesets: []
-  # - python
-  # - javascript
-  # - java
-  # - go
-  # - rust
-  # - ruby
-  # - kotlin
-  # - swift
-  # - php
-  # - terraform
+  # - bash
   # - docker
   # - dotnet
-  # - nextflow
+  # - go
+  # - java
+  # - javascript
+  # - kotlin
   # - kubernetes
+  # - nextflow
+  # - php
+  # - powershell
+  # - python
+  # - ruby
+  # - rust
   # - sql
+  # - swift
+  # - terraform
   # - typescript
 
 # ── Custom rules ─────────────────────────────────────────────────────────
