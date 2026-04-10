@@ -232,8 +232,19 @@ else
 fi
 echo ""
 
-# ── Test 11: Invalid schedule characters rejected ─────────────────────────
-echo "Test 11: Reject invalid --schedule characters"
+# ── Test 11: Sanitize modern OpenAI keys ───────────────────────────────
+echo "Test 11: Sanitize modern OpenAI keys"
+SANITIZE_INPUT="$TEST_DIR/sanitize-input.txt"
+SANITIZE_OUTPUT="$TEST_DIR/sanitize-output.txt"
+printf '%s\n' 'Token seen: sk-proj-abcdefghijklmnopqrstuvwxyz1234567890' > "$SANITIZE_INPUT"
+bash "$SCRIPT_DIR/.github/scripts/sanitize-report.sh" "$SANITIZE_INPUT" "$SANITIZE_OUTPUT"
+SANITIZED_CONTENT="$(cat "$SANITIZE_OUTPUT")"
+assert_output_contains "$SANITIZED_CONTENT" "[REDACTED_TOKEN]"
+assert_output_not_contains "$SANITIZED_CONTENT" "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
+echo ""
+
+# ── Test 12: Invalid schedule characters rejected ─────────────────────────
+echo "Test 12: Reject invalid --schedule characters"
 REPO_SCHED="$TEST_DIR/repo_sched"
 mkdir -p "$REPO_SCHED" && cd "$REPO_SCHED" && git init -q
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "'; echo pwned'" 2>/dev/null; then
@@ -244,8 +255,8 @@ else
 fi
 echo ""
 
-# ── Test 12: Reject schedule with wrong number of fields ──────────────────
-echo "Test 12: Reject --schedule with wrong field count"
+# ── Test 13: Reject schedule with wrong number of fields ──────────────────
+echo "Test 13: Reject --schedule with wrong field count"
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "0 8 *" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected schedule with 3 fields"
