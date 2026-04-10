@@ -181,20 +181,28 @@ if [[ -n "$RULESETS" ]]; then
 fi
 
 # ── Helper: sync schedule in an existing .csi.yml when explicitly requested ─
+# Helper: create a temp file preserving permissions of the original
+make_config_tmp() {
+  local config_path="$1"
+  local tmp_config
+  tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+  if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
+    :
+  else
+    local orig_mode
+    orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
+    [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
+  fi
+  echo "$tmp_config"
+}
+
 sync_existing_schedule() {
   local config_path="$1"
 
   (
     local tmp_config
-    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    tmp_config="$(make_config_tmp "$config_path")"
     trap 'rm -f "$tmp_config"' EXIT
-
-    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
-      :
-    else
-      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
-      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
-    fi
 
     if ! awk -v schedule="$SCHEDULE" '
       BEGIN { updated = 0 }
@@ -220,15 +228,8 @@ sync_existing_base_branch() {
 
   (
     local tmp_config
-    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    tmp_config="$(make_config_tmp "$config_path")"
     trap 'rm -f "$tmp_config"' EXIT
-
-    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
-      :
-    else
-      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
-      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
-    fi
 
     if ! awk -v branch="$BRANCH" '
       BEGIN { updated = 0 }
@@ -254,15 +255,8 @@ sync_existing_rulesets() {
 
   (
     local tmp_config
-    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    tmp_config="$(make_config_tmp "$config_path")"
     trap 'rm -f "$tmp_config"' EXIT
-
-    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
-      :
-    else
-      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
-      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
-    fi
 
     if ! awk -v rulesets_yaml="$rulesets_yaml" '
       BEGIN {
@@ -308,11 +302,7 @@ else
     echo "Error: Template .csi.yml not found at '$SCRIPT_DIR/.csi.yml'." >&2
     exit 1
   fi
-  if [[ "$(cd "$SCRIPT_DIR" && pwd)" == "$(cd "$REPO_PATH" && pwd)" ]]; then
-    echo "   ✓ .csi.yml already present (self-install)"
-  else
-    cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
-  fi
+  cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
   if ! sync_existing_schedule "$CSI_CONFIG"; then
     echo "   ⚠ Template .csi.yml missing 'schedule' key" >&2
     exit 1
