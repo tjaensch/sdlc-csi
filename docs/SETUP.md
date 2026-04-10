@@ -8,7 +8,7 @@ This guide walks you through everything needed to get CSI running in your reposi
 
 1. [Prerequisites](#1-prerequisites)
 2. [Install CSI](#2-install-csi)
-3. [Configure the LLM Backend](#3-configure-the-llm-backend)
+3. [Configure the Copilot Token](#3-configure-the-copilot-token)
 4. [Enable PR Creation](#4-enable-pr-creation)
 5. [Optional: Enable Workflow File Edits](#5-optional-enable-workflow-file-edits)
 6. [Optional: Enable Auto-Delete of Merged Branches](#6-optional-enable-auto-delete-of-merged-branches)
@@ -25,7 +25,7 @@ Before installing CSI, make sure you have:
 - [ ] A **GitHub repository** (public or private)
 - [ ] **Git** installed locally
 - [ ] **GitHub CLI** (`gh`) installed — [install guide](https://cli.github.com/)
-- [ ] A GitHub account with **Copilot access** (for the recommended Copilot backend)
+- [ ] A GitHub account with **Copilot access**
 - [ ] Repository **admin access** (needed for settings and secrets)
 
 ### Verify your tools
@@ -50,7 +50,7 @@ bash csi/install.sh --repo-path /path/to/your-repo
 This copies the following into your repo:
 - `.github/workflows/csi-run.yml` — the main workflow
 - `.github/agents/csi-maintainer.agent.md` — the agent definition
-- `.github/scripts/` — helper scripts (Copilot CLI installer, sanitizer, OpenAI scanner)
+- `.github/scripts/` — helper scripts (Copilot CLI installer, sanitizer)
 - `.github/rulesets/generic.md` — the base ruleset (always active)
 - `.csi.yml` — configuration file (created only if it doesn't exist)
 
@@ -60,7 +60,6 @@ This copies the following into your repo:
 |------|-------------|---------|
 | `--repo-path <path>` | Target repository root | Current directory |
 | `--rulesets <list>` | Comma-separated rulesets to install | `generic` only |
-| `--backend <name>` | `copilot` or `openai` | `copilot` |
 | `--branch <name>` | Base branch for PRs | `main` |
 | `--schedule <cron>` | Cron schedule | `0 10 * * 1` (Monday 10:00 UTC) |
 | `--force` | Overwrite existing CSI files | Off |
@@ -76,13 +75,9 @@ bash csi/install.sh \
 
 ---
 
-## 3. Configure the LLM Backend
+## 3. Configure the Copilot Token
 
-CSI supports two backends. Choose one:
-
-### Option A: GitHub Copilot (recommended)
-
-This is the full-featured backend — it scans **and** applies fixes.
+CSI uses GitHub Copilot to scan and apply fixes.
 
 **Step 1: Create a Personal Access Token (PAT)**
 
@@ -105,22 +100,6 @@ This is the full-featured backend — it scans **and** applies fixes.
 3. Name: `COPILOT_TOKEN`
 4. Secret: paste the token you copied
 5. Click **Add secret**
-
-### Option B: OpenAI (scan-only)
-
-This backend can scan and report issues but **cannot apply fixes** (no tool-use capability).
-
-1. Get your API key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-2. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Name: `OPENAI_API_KEY`
-5. Secret: paste your OpenAI API key
-6. Click **Add secret**
-7. In your `.csi.yml`, set:
-   ```yaml
-   backend: openai
-   ```
-8. If you are creating a fresh config with `install.sh --backend openai`, CSI automatically sets `tooling_currency: false` and `dependency_health: false` because the OpenAI backend skips those internet-dependent categories.
 
 ---
 
@@ -170,7 +149,7 @@ CSI auto-detects `CSI_PAT` at runtime. When present:
 - The agent is allowed to edit `.github/workflows/` files
 - The PAT is used for push and PR creation
 
-When absent, CSI falls back to `GITHUB_TOKEN` with workflow files excluded. For Copilot (fix-capable) runs, the workflow emits a notice indicating which mode is active; OpenAI (scan-only) runs may not print this specific notice.
+When absent, CSI falls back to `GITHUB_TOKEN` with workflow files excluded. The workflow emits a notice indicating which mode is active.
 
 ---
 
@@ -203,9 +182,6 @@ base_branch: main
 
 # Days before stale CSI PRs are auto-closed
 stale_pr_days: 3
-
-# LLM backend: "copilot" (scan + fix) or "openai" (scan only)
-backend: copilot
 
 # Override the model. Leave empty to auto-select from the
 # workflow's preference list (tries models in order until one works).

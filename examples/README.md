@@ -13,7 +13,6 @@ version: 1
 schedule: "0 10 * * 1"
 base_branch: main
 stale_pr_days: 3
-backend: copilot
 timeout: 1800
 
 scan:
@@ -45,7 +44,6 @@ custom_rules:
 version: 1
 schedule: "0 10 * * 1"
 base_branch: main
-backend: copilot
 
 scan:
   exclude_paths:
@@ -58,27 +56,4 @@ rulesets:
 
 custom_rules:
   - "All React components must be functional, not class-based"
-```
-
-## Example: OpenAI Backend (Scan-Only)
-
-```yaml
-version: 1
-schedule: "0 10 * * 1"
-base_branch: main
-backend: openai
-model: "gpt-4o"
-
-scan:
-  categories:
-    documentation_drift: true
-    code_quality: true
-    security_hygiene: true
-    config_consistency: true
-    # OpenAI scans skip these internet-dependent categories.
-    tooling_currency: false
-    dependency_health: false
-    # Disable categories that benefit more from auto-fix.
-    dry_violations: false
-    dead_code: false
 ```

@@ -99,9 +99,7 @@ assert_file_exists "$REPO1/.github/workflows/csi-run.yml"
 assert_file_exists "$REPO1/.github/agents/csi-maintainer.agent.md"
 assert_file_exists "$REPO1/.github/scripts/install-copilot-cli.sh"
 assert_file_exists "$REPO1/.github/scripts/sanitize-report.sh"
-assert_file_exists "$REPO1/.github/scripts/openai-scan.py"
 assert_file_exists "$REPO1/.github/rulesets/generic.md"
-assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
 assert_file_contains "$REPO1/.csi.yml" "timeout: 1800"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
@@ -135,16 +133,12 @@ mkdir -p "$REPO2" && cd "$REPO2" && git init -q
 bash "$SCRIPT_DIR/install.sh" \
   --repo-path "$REPO2" \
   --rulesets "python,javascript" \
-  --backend "openai" \
   --branch "develop" \
   --schedule "0 8 * * *"
 
 assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
-assert_file_contains "$REPO2/.csi.yml" "backend: openai"
 assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
-assert_file_contains "$REPO2/.csi.yml" "tooling_currency: false"
-assert_file_contains "$REPO2/.csi.yml" "dependency_health: false"
 assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
 echo ""
 
@@ -219,31 +213,8 @@ assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "# Usage:"
 assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "set -euo pipefail"
 echo ""
 
-# ── Test 10: OpenAI fallback report matches CSI output contract ────────────
-echo "Test 10: OpenAI fallback report format"
-FALLBACK_REPORT="$TEST_DIR/openai-fallback-report.md"
-if python3 "$SCRIPT_DIR/.github/scripts/openai-scan.py" \
-  --output "$FALLBACK_REPORT" \
-  --fallback-report "backend exploded" >/dev/null 2>&1; then
-  FAIL=$((FAIL + 1))
-  echo "  FAIL: Fallback report mode should exit non-zero"
-else
-  PASS=$((PASS + 1))
-fi
-
-if [[ -f "$FALLBACK_REPORT" ]]; then
-  FALLBACK_OUTPUT="$(cat "$FALLBACK_REPORT")"
-  assert_output_contains "$FALLBACK_OUTPUT" "## Scan Results"
-  assert_output_contains "$FALLBACK_OUTPUT" "## Remaining Issues"
-  assert_output_contains "$FALLBACK_OUTPUT" "**[CONFIG_CONSISTENCY] 🔴 HIGH**"
-else
-  FAIL=$((FAIL + 1))
-  echo "  FAIL: Expected fallback report to exist: $FALLBACK_REPORT"
-fi
-echo ""
-
-# ── Test 11: Sanitize modern OpenAI keys ───────────────────────────────
-echo "Test 11: Sanitize modern OpenAI keys"
+# ── Test 10: Sanitize modern API keys ─────────────────────────────────────
+echo "Test 10: Sanitize modern API keys"
 SANITIZE_INPUT="$TEST_DIR/sanitize-input.txt"
 SANITIZE_OUTPUT="$TEST_DIR/sanitize-output.txt"
 printf '%s\n' 'Token seen: sk-proj-abcdefghijklmnopqrstuvwxyz1234567890' > "$SANITIZE_INPUT"
@@ -253,8 +224,8 @@ assert_output_contains "$SANITIZED_CONTENT" "[REDACTED_TOKEN]"
 assert_output_not_contains "$SANITIZED_CONTENT" "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
 echo ""
 
-# ── Test 12: Invalid schedule characters rejected ─────────────────────────
-echo "Test 12: Reject invalid --schedule characters"
+# ── Test 11: Invalid schedule characters rejected ─────────────────────────
+echo "Test 11: Reject invalid --schedule characters"
 REPO_SCHED="$TEST_DIR/repo_sched"
 mkdir -p "$REPO_SCHED" && cd "$REPO_SCHED" && git init -q
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "'; echo pwned'" 2>/dev/null; then
@@ -265,8 +236,8 @@ else
 fi
 echo ""
 
-# ── Test 13: Reject schedule with wrong number of fields ──────────────────
-echo "Test 13: Reject --schedule with wrong field count"
+# ── Test 12: Reject schedule with wrong number of fields ──────────────────
+echo "Test 12: Reject --schedule with wrong field count"
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "0 8 *" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected schedule with 3 fields"

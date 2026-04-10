@@ -68,7 +68,6 @@ jobs:
             echo "::notice::No .csi.yml found — using defaults."
             echo "base_branch=main" >> "$GITHUB_OUTPUT"
             echo "stale_pr_days=3" >> "$GITHUB_OUTPUT"
-            echo "backend=copilot" >> "$GITHUB_OUTPUT"
             echo "model=" >> "$GITHUB_OUTPUT"
             echo "timeout=1800" >> "$GITHUB_OUTPUT"
             echo "rulesets=" >> "$GITHUB_OUTPUT"
@@ -85,7 +84,6 @@ jobs:
           # Each field falls back to a sensible default
           BASE_BRANCH=$(yq -r '.base_branch // "main"' "$CONFIG_FILE")
           STALE_DAYS=$(yq -r '.stale_pr_days // 3' "$CONFIG_FILE")
-          BACKEND=$(yq -r '.backend // "copilot"' "$CONFIG_FILE")
           MODEL=$(yq -r '.model // ""' "$CONFIG_FILE")
           TIMEOUT=$(yq -r '.timeout // 1800' "$CONFIG_FILE")
           RULESETS=$(yq -r '(.rulesets // []) | join(",")' "$CONFIG_FILE")
@@ -105,12 +103,6 @@ jobs:
           # Read custom rules
           CUSTOM_RULES=$(yq -r '(.custom_rules // []) | join("\u001f")' "$CONFIG_FILE")
 
-          # Validate backend
-          if [[ "$BACKEND" != "copilot" && "$BACKEND" != "openai" ]]; then
-            echo "::error::Invalid backend '$BACKEND' in .csi.yml. Must be 'copilot' or 'openai'."
-            exit 1
-          fi
-
           # Validate timeout
           if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]] || (( TIMEOUT <= 0 )); then
             echo "::error::Invalid timeout '$TIMEOUT' in .csi.yml. Must be a positive integer."
@@ -119,7 +111,6 @@ jobs:
 
           echo "base_branch=$BASE_BRANCH" >> "$GITHUB_OUTPUT"
           echo "stale_pr_days=$STALE_DAYS" >> "$GITHUB_OUTPUT"
-          echo "backend=$BACKEND" >> "$GITHUB_OUTPUT"
           echo "model=$MODEL" >> "$GITHUB_OUTPUT"
           echo "timeout=$TIMEOUT" >> "$GITHUB_OUTPUT"
           echo "rulesets=$RULESETS" >> "$GITHUB_OUTPUT"
@@ -135,14 +126,10 @@ jobs:
         run: |
           if [[ -n "${CSI_PAT:-}" ]]; then
             echo "has_pat=true" >> "$GITHUB_OUTPUT"
-            if [[ "${{ steps.config.outputs.backend }}" != "openai" ]]; then
-              echo "::notice::CSI_PAT detected — workflow file edits enabled."
-            fi
+            echo "::notice::CSI_PAT detected — workflow file edits enabled."
           else
             echo "has_pat=false" >> "$GITHUB_OUTPUT"
-            if [[ "${{ steps.config.outputs.backend }}" != "openai" ]]; then
-              echo "::notice::No CSI_PAT — using GITHUB_TOKEN (workflow file edits excluded)."
-            fi
+            echo "::notice::No CSI_PAT — using GITHUB_TOKEN (workflow file edits excluded)."
           fi
 
       # ── Re-checkout on configured base branch ────────────────────────
@@ -169,17 +156,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH_NAME: ${{ steps.branch.outputs.name }}
-          BACKEND: ${{ steps.config.outputs.backend }}
         run: |
           set -euo pipefail
           echo "::add-mask::${GH_TOKEN}"
-
-          # OpenAI is scan-only (no PR creation), so never skip
-          if [[ "$BACKEND" == "openai" ]]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::OpenAI backend — skipping existing-PR check (scan-only mode)."
-            exit 0
-          fi
 
           if ! OPEN_PR=$(gh pr list \
             --head "$BRANCH_NAME" \
@@ -321,11 +300,10 @@ jobs:
           echo "prompt_file=$PROMPT_FILE" >> "$GITHUB_OUTPUT"
           echo "Prompt built ($(wc -l < "$PROMPT_FILE") lines)"
 
-      # ── Install Copilot CLI (copilot backend) ────────────────────────
+      # ── Install Copilot CLI ────────────────────────────────────────────
       - name: Install Copilot CLI
         if: >-
           steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'copilot'
         id: copilot_cli
         env:
           GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
@@ -338,21 +316,6 @@ jobs:
           fi
           bash "${{ github.workspace }}/.github/scripts/install-copilot-cli.sh" "${PIN_ARGS[@]}"
 
-      # ── Setup Python (openai backend) ────────────────────────────────
-      - name: Setup Python for OpenAI backend
-        if: >-
-          steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'openai'
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
-      - name: Install OpenAI SDK
-        if: >-
-          steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'openai'
-        run: pip install 'openai>=1.0.0'
-
       # ── Create feature branch ────────────────────────────────────────
       - name: Create feature branch
         if: steps.existing.outputs.skip != 'true'
@@ -361,12 +324,11 @@ jobs:
         run: |
           git checkout -B "$BRANCH_NAME"
 
-      # ── Run scan: Copilot backend ────────────────────────────────────
-      - name: Run CSI scan (Copilot backend)
+      # ── Run scan ──────────────────────────────────────────────────────
+      - name: Run CSI scan
         if: >-
           steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'copilot'
-        id: scan_copilot
+        id: scan
         env:
           COPILOT_PAT: ${{ secrets.COPILOT_TOKEN }}
           COPILOT_TIMEOUT: ${{ inputs.timeout || steps.config.outputs.timeout }}
@@ -531,58 +493,6 @@ jobs:
 
           rm -rf "${GH_CONFIG_DIR:-}"
 
-      # ── Run scan: OpenAI backend (scan-only) ─────────────────────────
-      - name: Run CSI scan (OpenAI backend)
-        if: >-
-          steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'openai'
-        id: scan_openai
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_TIMEOUT: ${{ inputs.timeout || steps.config.outputs.timeout }}
-          OPENAI_MODEL: ${{ inputs.model || steps.config.outputs.model }}
-          PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
-        run: |
-          set -euo pipefail
-
-          echo "::add-mask::${OPENAI_API_KEY}"
-
-          REPORT_FILE="${RUNNER_TEMP}/csi-report-$(date +%Y%m%d-%H%M%S).md"
-
-          python3 "${{ github.workspace }}/.github/scripts/openai-scan.py" \
-            --prompt-file "$PROMPT_FILE" \
-            --output "$REPORT_FILE" \
-            --model "${OPENAI_MODEL:-gpt-5.4}" \
-            --timeout "${OPENAI_TIMEOUT:-1800}" && SCAN_OK=true || {
-              SCAN_OK=false
-              echo "::warning::OpenAI scan exited with error"
-              if [[ ! -s "$REPORT_FILE" ]]; then
-                python3 "${{ github.workspace }}/.github/scripts/openai-scan.py" \
-                  --output "$REPORT_FILE" \
-                  --model "${OPENAI_MODEL:-gpt-5.4}" \
-              --fallback-report "OpenAI scan process exited with an error before producing a report" || true
-              fi
-            }
-
-          echo "scan_success=$SCAN_OK" >> "$GITHUB_OUTPUT"
-          echo "report_file=$REPORT_FILE" >> "$GITHUB_OUTPUT"
-
-      # ── Resolve scan outputs ─────────────────────────────────────────
-      - name: Resolve scan outputs
-        if: steps.existing.outputs.skip != 'true'
-        id: scan
-        run: |
-          BACKEND="${{ steps.config.outputs.backend }}"
-          echo "::notice::LLM backend: ${BACKEND}"
-          if [[ "$BACKEND" == "copilot" ]]; then
-            echo "scan_success=${{ steps.scan_copilot.outputs.scan_success }}" >> "$GITHUB_OUTPUT"
-            echo "scan_timed_out=${{ steps.scan_copilot.outputs.scan_timed_out }}" >> "$GITHUB_OUTPUT"
-            echo "report_file=${{ steps.scan_copilot.outputs.report_file }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "scan_success=${{ steps.scan_openai.outputs.scan_success }}" >> "$GITHUB_OUTPUT"
-            echo "scan_timed_out=false" >> "$GITHUB_OUTPUT"
-            echo "report_file=${{ steps.scan_openai.outputs.report_file }}" >> "$GITHUB_OUTPUT"
-          fi
 
       # ── Check for changes ────────────────────────────────────────────
       - name: Check for changes
@@ -591,14 +501,9 @@ jobs:
         env:
           HAS_PAT: ${{ steps.token.outputs.has_pat }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
-          BACKEND: ${{ steps.config.outputs.backend }}
         run: |
           if [[ "$DRY_RUN" == "true" ]]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
-          elif [[ "$BACKEND" == "openai" ]]; then
-            # OpenAI is scan-only — never produces file changes
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::OpenAI scan complete — see report for findings."
           elif [[ "$HAS_PAT" == "true" ]]; then
             # PAT can push workflow files — check all changes
             ALL_CHANGES=$(git status --porcelain || true)
@@ -756,7 +661,6 @@ jobs:
           DATE_STAMP: ${{ steps.branch.outputs.date }}
           HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
-          BACKEND: ${{ steps.config.outputs.backend }}
           SKIPPED: ${{ steps.existing.outputs.skip }}
         run: |
           {
@@ -765,8 +669,7 @@ jobs:
             echo "| Field | Value |"
             echo "|-------|-------|"
             echo "| **Date** | ${DATE_STAMP} |"
-            echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; elif [[ \"$BACKEND\" == 'openai' ]]; then echo '🔍 Scan Only'; else echo '🔧 Scan & Fix'; fi) |"
-            echo "| **Backend** | \`${BACKEND}\` |"
+            echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; else echo '🔧 Scan & Fix'; fi) |"
             echo "| **Scan Status** | $(if [[ \"$SKIPPED\" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ \"$SCAN_SUCCESS\" == 'true' ]]; then echo '✅ Success'; elif [[ \"$SCAN_TIMED_OUT\" == 'true' ]]; then echo '⏱️ Timed Out (Partial)'; else echo '❌ Failed'; fi) |"
             if [[ "$SKIPPED" != 'true' ]]; then
               echo "| **Changes Found** | $(if [[ \"$HAS_CHANGES\" == 'true' ]]; then echo 'Yes'; else echo 'No'; fi) |"
