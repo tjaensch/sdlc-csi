@@ -46,6 +46,11 @@ EXCLUDE_DIRS = {
 }
 
 
+def append_read_error(lines: list[str], path: str, exc: OSError) -> None:
+    """Record unreadable files in the repo context instead of skipping them."""
+    lines.append(f"### {path}\n(Could not read file: {exc})\n")
+
+
 def get_repo_context(max_files: int = 100, max_source_chars: int = 80_000) -> str:
     """Gather repository context: file tree, config files, and source code."""
     lines = ["## Repository Structure\n"]
@@ -87,8 +92,8 @@ def get_repo_context(max_files: int = 100, max_source_chars: int = 80_000) -> st
                 if len(content) > 3000:
                     content = content[:3000] + "\n... (truncated)"
                 lines.append(f"### {fname}\n```\n{content}\n```\n")
-            except OSError:
-                pass
+            except OSError as exc:
+                append_read_error(lines, fname, exc)
 
     # Read workflow files
     wf_dir = Path(".github/workflows")
@@ -99,8 +104,8 @@ def get_repo_context(max_files: int = 100, max_source_chars: int = 80_000) -> st
                 if len(content) > 3000:
                     content = content[:3000] + "\n... (truncated)"
                 lines.append(f"### {wf}\n```yaml\n{content}\n```\n")
-            except OSError:
-                pass
+            except OSError as exc:
+                append_read_error(lines, str(wf), exc)
 
     # Read source files so the model can analyse actual code
     lines.append("## Source Files\n")
@@ -126,8 +131,8 @@ def get_repo_context(max_files: int = 100, max_source_chars: int = 80_000) -> st
             source_chars += len(content)
             ext = Path(fpath).suffix.lstrip(".")
             lines.append(f"### {fpath}\n```{ext}\n{content}\n```\n")
-        except OSError:
-            pass
+        except OSError as exc:
+            append_read_error(lines, fpath, exc)
 
     return "\n".join(lines)
 
