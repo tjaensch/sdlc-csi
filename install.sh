@@ -214,6 +214,80 @@ sync_existing_schedule() {
   )
 }
 
+
+sync_existing_base_branch() {
+  local config_path="$1"
+
+  (
+    local tmp_config
+    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    trap 'rm -f "$tmp_config"' EXIT
+
+    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
+      :
+    else
+      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
+      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
+    fi
+
+    if ! awk -v branch="$BRANCH" '
+      BEGIN { updated = 0 }
+      /^base_branch:[[:space:]]*/ && updated == 0 {
+        cr = (substr($0, length($0)) == "\r") ? "\r" : ""
+        printf "base_branch: %s%s\n", branch, cr
+        updated = 1
+        next
+      }
+      { print }
+      END { exit(updated ? 0 : 1) }
+    ' "$config_path" > "$tmp_config"; then
+      exit 1
+    fi
+
+    mv "$tmp_config" "$config_path"
+  )
+}
+
+sync_existing_rulesets() {
+  local config_path="$1"
+  local rulesets_yaml="$2"
+
+  (
+    local tmp_config
+    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    trap 'rm -f "$tmp_config"' EXIT
+
+    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
+      :
+    else
+      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
+      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
+    fi
+
+    if ! awk -v rulesets_yaml="$rulesets_yaml" '
+      BEGIN {
+        updated = 0
+        count = split(rulesets_yaml, lines, "\n")
+      }
+      /^rulesets:[[:space:]]*/ && updated == 0 {
+        cr = (substr($0, length($0)) == "\r") ? "\r" : ""
+        printf "rulesets:%s\n", cr
+        for (i = 1; i <= count; i++) {
+          print lines[i]
+        }
+        updated = 1
+        next
+      }
+      { print }
+      END { exit(updated ? 0 : 1) }
+    ' "$config_path" > "$tmp_config"; then
+      exit 1
+    fi
+
+    mv "$tmp_config" "$config_path"
+  )
+}
+
 # ── Generate .csi.yml if missing ─────────────────────────────────────────
 CSI_CONFIG="$REPO_PATH/.csi.yml"
 if [[ -f "$CSI_CONFIG" ]]; then
@@ -230,51 +304,17 @@ else
   echo ""
   echo "📋 Creating .csi.yml..."
 
-  # Build rulesets YAML list from rulesets that were actually installed
-  RULESETS_YAML="[]"
+  cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
+  sync_existing_schedule "$CSI_CONFIG"
+  sync_existing_base_branch "$CSI_CONFIG"
 
   if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
-      RULESETS_YAML="${RULESETS_YAML}\n  - ${ruleset}"
+      RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}\n}  - ${ruleset}"
     done
+    sync_existing_rulesets "$CSI_CONFIG" "$RULESETS_YAML"
   fi
-
-  cat > "$CSI_CONFIG" << CONFIG_EOF
-# ─────────────────────────────────────────────────────────────────────────────
-# .csi.yml — Continuous Self-Improvement configuration
-# ─────────────────────────────────────────────────────────────────────────────
-# Documentation: https://github.com/tjaensch/csi#configuration
-# ─────────────────────────────────────────────────────────────────────────────
-version: 1
-
-schedule: "${SCHEDULE}"
-base_branch: ${BRANCH}
-stale_pr_days: 3
-
-model: ""
-timeout: 1800
-
-scan:
-  categories:
-    dry_violations: true
-    documentation_drift: true
-    tooling_currency: true
-    dead_code: true
-    code_quality: true
-    security_hygiene: true
-    dependency_health: true
-    config_consistency: true
-  exclude_paths:
-    - "vendor/**"
-    - "node_modules/**"
-    - "dist/**"
-    - ".git/**"
-
-rulesets: $(printf '%b' "$RULESETS_YAML")
-
-custom_rules: []
-CONFIG_EOF
 
   echo "   ✓ Created: $CSI_CONFIG"
 fi
