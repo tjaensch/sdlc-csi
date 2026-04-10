@@ -145,7 +145,7 @@ CSI uses LLM-generated analysis and code changes. LLM output **can be wrong, inc
 ## FAQ
 
 **Q: How often should I run CSI?**
-Weekly is a good default for most repos. High-activity repos might benefit from daily scans. Set the `schedule` in `.csi.yml`.
+Weekly is a good default for most repos. High-activity repos might benefit from daily scans. Update the `schedule` in `.csi.yml`, then re-run `install.sh --schedule "..." --force` or edit `.github/workflows/csi-run.yml` to sync the workflow cron.
 
 **Q: Will CSI break my code?**
 CSI applies one minimal fix per run and opens a PR for human review. It never pushes directly to your default branch. All changes are backward-compatible by design.
