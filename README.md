@@ -186,21 +186,24 @@ rulesets:
 | Ruleset | Language | Example Rules |
 |---------|----------|---------------|
 | `generic` | Any | README exists, no committed secrets, pinned CI actions *(always active)* |
-| `python` | Python | Type hints on public functions, no bare `except:`, use `pathlib` |
-| `javascript` | JS/TS | Lockfile committed, no `console.log` in prod, strict TypeScript |
 | `bash` | Bash/Shell | `set -euo pipefail`, quote variables, `mktemp` for temp files |
-| `powershell` | PowerShell | `$ErrorActionPreference = 'Stop'`, no aliases in scripts, PSScriptAnalyzer |
-| `java` | Java | Try-with-resources, SLF4J over `println`, pin Maven/Gradle versions |
-| `go` | Go | Handle all errors, `go.sum` committed, no `panic` in libraries |
-| `rust` | Rust | No `unwrap()` in prod, `clippy` in CI, `// SAFETY:` on `unsafe` |
-| `ruby` | Ruby | `frozen_string_literal`, no `rescue Exception`, RuboCop in CI |
-| `kotlin` | Kotlin | `val` over `var`, no `!!` in prod, sealed classes for state |
-| `swift` | Swift | No force unwrapping, `guard` for early exits, SwiftLint in CI |
-| `php` | PHP | `strict_types`, no `eval()`, prepared statements for DB access |
-| `terraform` | HCL | Pin provider versions, no secrets in `.tf`, use modules |
 | `docker` | Docker | Pin base image tags, multi-stage builds, no secrets in images |
 | `dotnet` | C#/.NET | Nullable enabled, no secrets in `appsettings.json`, async naming |
+| `go` | Go | Handle all errors, `go.sum` committed, no `panic` in libraries |
+| `java` | Java | Try-with-resources, SLF4J over `println`, pin Maven/Gradle versions |
+| `javascript` | JavaScript | Lockfile committed, no `console.log` in prod, pin Node.js version |
+| `kotlin` | Kotlin | `val` over `var`, no `!!` in prod, sealed classes for state |
+| `kubernetes` | K8s/Helm | Resource limits, liveness probes, no `latest` tags, non-root containers |
 | `nextflow` | Nextflow | DSL2 syntax, container tags pinned, `meta.yml` exists |
+| `php` | PHP | `strict_types`, no `eval()`, prepared statements for DB access |
+| `powershell` | PowerShell | `$ErrorActionPreference = 'Stop'`, no aliases in scripts, PSScriptAnalyzer |
+| `python` | Python | Type hints on public functions, no bare `except:`, use `pathlib` |
+| `ruby` | Ruby | `frozen_string_literal`, no `rescue Exception`, RuboCop in CI |
+| `rust` | Rust | No `unwrap()` in prod, `clippy` in CI, `// SAFETY:` on `unsafe` |
+| `sql` | SQL | No `SELECT *`, explicit `JOIN` syntax, CTEs over nested subqueries |
+| `swift` | Swift | No force unwrapping, `guard` for early exits, SwiftLint in CI |
+| `terraform` | HCL | Pin provider versions, no secrets in `.tf`, use modules |
+| `typescript` | TypeScript | Strict mode, no `any`, explicit return types, no `@ts-ignore` |
 
 ### Adding Custom Rulesets
 
