@@ -55,22 +55,28 @@ scan:
 
 # ── Rulesets ─────────────────────────────────────────────────────────────
 # Which language-aware rule packs to apply alongside the always-included
-# "generic" ruleset. Available: bash, powershell, python, javascript, java,
-# go, rust, ruby, kotlin, swift, php, terraform, docker, dotnet, nextflow
+# "generic" ruleset. Available: bash, docker, dotnet, go, java, javascript,
+# kotlin, kubernetes, nextflow, php, powershell, python, ruby, rust, sql,
+# swift, terraform, typescript
 rulesets: []
-  # - python
-  # - javascript
-  # - java
-  # - go
-  # - rust
-  # - ruby
-  # - kotlin
-  # - swift
-  # - php
-  # - terraform
+  # - bash
   # - docker
   # - dotnet
+  # - go
+  # - java
+  # - javascript
+  # - kotlin
+  # - kubernetes
   # - nextflow
+  # - php
+  # - powershell
+  # - python
+  # - ruby
+  # - rust
+  # - sql
+  # - swift
+  # - terraform
+  # - typescript
 
 # ── Custom rules ─────────────────────────────────────────────────────────
 # Add repo-specific rules that the agent should check for.
