@@ -31,65 +31,29 @@ Each run produces **one focused fix** to keep PRs small and reviewable. Stale PR
 
 ## Quick Start
 
-### 1. Install
-
 ```bash
-# Clone CSI
+# 1. Clone CSI and install into your project
 git clone https://github.com/tjaensch/csi.git
-
-# Install into your project
-bash csi/install.sh --repo-path /path/to/your-repo
-
-# With language-specific rulesets
 bash csi/install.sh --repo-path /path/to/your-repo --rulesets "python,javascript"
-```
 
-### 2. Add a Secret
+# 2. Add a COPILOT_TOKEN secret to your repo:
+#    Settings → Secrets and variables → Actions → New repository secret
+#    Name: COPILOT_TOKEN  |  Value: a GitHub PAT with Copilot access
 
-CSI needs an LLM backend. Choose one:
+# 3. Enable PR creation:
+#    Settings → Actions → General → Workflow permissions
+#    → Check "Allow GitHub Actions to create and approve pull requests"
 
-**GitHub Copilot (recommended — full scan + auto-fix):**
-- Go to your repo → Settings → Secrets and variables → Actions → New repository secret
-- Name: `COPILOT_TOKEN`
-- Value: A GitHub PAT with Copilot access
-
-**OpenAI (scan-only, no auto-fix):**
-- Go to your repo → Settings → Secrets and variables → Actions → New repository secret
-- Name: `OPENAI_API_KEY`
-- Value: Your OpenAI API key
-- Set `backend: openai` in `.csi.yml`
-
-**Optional — Enable workflow file edits:**
-
-By default, `GITHUB_TOKEN` cannot push changes to `.github/workflows/` (GitHub platform restriction). To allow CSI to fix workflow files too:
-
-- Create a fine-grained PAT with **Contents: Read and write**, **Pull requests: Read and write**, and **Workflows: Read and write** permissions
-- Add it as a repository secret named `CSI_PAT`
-- CSI will automatically detect it and use it for push and PR creation
-
-### 3. Enable PR Creation
-
-CSI creates pull requests via GitHub Actions. You must enable this in your repo:
-
-1. Go to **Settings → Actions → General**
-2. Scroll to **Workflow permissions**
-3. Check **"Allow GitHub Actions to create and approve pull requests"**
-4. Click **Save**
-
-Without this, the workflow will run successfully but fail at the PR creation step.
-
-### 4. Commit and Run
-
-```bash
+# 4. Commit and run
 git add .csi.yml .github/
 git commit -m "chore: install CSI automated maintenance"
 git push
 
-# Trigger a dry run
-gh workflow run csi-run.yml -f dry_run=true
+gh workflow run csi-run.yml -f dry_run=true   # scan only (no PR)
+gh workflow run csi-run.yml                    # scan + fix + open PR
 ```
 
-> **Need more detail?** See the full [Setup Guide](docs/SETUP.md) for step-by-step instructions on tokens, permissions, and troubleshooting.
+> **Need more detail?** The full [Setup Guide](docs/SETUP.md) covers token creation, OpenAI backend, workflow file permissions, troubleshooting, and all configuration options.
 
 ## What It Scans
 
@@ -106,82 +70,26 @@ gh workflow run csi-run.yml -f dry_run=true
 
 ## Configuration
 
-CSI is configured via a `.csi.yml` file in your repository root. The installer creates one with sensible defaults.
+CSI is configured via `.csi.yml` in your repository root. The installer creates one with sensible defaults — most users won't need to change anything.
 
 ```yaml
 version: 1
-
-# Schedule: weekly Monday 10:00 UTC (cron syntax)
-schedule: "0 10 * * 1"
-
-# Branch to base fix PRs on
+schedule: "0 10 * * 1"        # weekly Monday 10:00 UTC
 base_branch: main
-
-# Auto-close unmerged PRs after N days
-stale_pr_days: 3
-
-# LLM backend: "copilot" (scan + fix) or "openai" (scan only)
-backend: copilot
-
-# Override model (leave empty to auto-select from the preference list)
-# model: "gpt-5.4"
-
-# Scan timeout in seconds
-timeout: 1800
-
-# Toggle scan categories
-scan:
-  categories:
-    dry_violations: true
-    documentation_drift: true
-    tooling_currency: true
-    dead_code: true
-    code_quality: true
-    security_hygiene: true
-    dependency_health: true
-    config_consistency: true
-  exclude_paths:
-    - "vendor/**"
-    - "node_modules/**"
-    - "dist/**"
-    - ".git/**"
-
-# Language-specific rule packs (see "Rulesets" below)
-rulesets: []
-
-# Repo-specific rules (free text)
-custom_rules: []
-```
-
-> **Need a complete example?** See [`examples/.csi.yml`](examples/.csi.yml) for a fully documented configuration with all available options and their defaults.
-
-### Configuration Reference
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `version` | int | `1` | Config schema version |
-| `schedule` | string | `"0 10 * * 1"` | Cron expression (UTC) for scheduled scans |
-| `base_branch` | string | `"main"` | Branch to base fix PRs on |
-| `stale_pr_days` | int | `3` | Days before unmerged PRs are auto-closed |
-| `backend` | string | `"copilot"` | `"copilot"` or `"openai"` |
-| `model` | string | `""` | LLM model override |
-| `timeout` | int | `1800` | Scan timeout in seconds |
-| `scan.categories.*` | bool | `true` | Enable/disable individual scan categories |
-| `scan.exclude_paths` | list | common vendors | Glob patterns to skip during scanning |
-| `rulesets` | list | `[]` | Language rule packs to enable |
-| `custom_rules` | list | `[]` | Free-text repo-specific rules |
-
-## Rulesets
-
-Rulesets are language-aware rule packs that extend the base scan with framework-specific checks. Enable them in `.csi.yml`:
-
-```yaml
+backend: copilot               # or "openai" (scan-only)
 rulesets:
   - python
   - javascript
 ```
 
-### Available Rulesets
+See the [Configuration Reference](docs/SETUP.md#7-configure-csiyml) and [`examples/.csi.yml`](examples/.csi.yml) for all available options.
+
+## Available Rulesets
+
+Rulesets are language-aware rule packs that extend the base scan. Enable them in `.csi.yml` or via `--rulesets` during install. The `generic` ruleset is always active.
+
+<details>
+<summary><strong>View all 19 rulesets</strong></summary>
 
 | Ruleset | Language | Example Rules |
 |---------|----------|---------------|
@@ -205,95 +113,26 @@ rulesets:
 | `terraform` | HCL | Pin provider versions, no secrets in `.tf`, use modules |
 | `typescript` | TypeScript | Strict mode, no `any`, explicit return types, no `@ts-ignore` |
 
-### Adding Custom Rulesets
+</details>
 
-Create a markdown file in `.github/rulesets/` in your repo and reference it by name:
-
-```yaml
-rulesets:
-  - python
-  - my-custom-rules   # reads .github/rulesets/my-custom-rules.md
-```
-
-Follow the pattern in existing rulesets under `.github/rulesets/` in an installed CSI repo — use `<LANG>-NNN` IDs, short titles, and actionable descriptions.
-
-## Backends
-
-### GitHub Copilot (recommended)
-
-- **Agentic** — runs as an interactive agent with tool access (file browsing, `editFiles`)
-- Full scan **and** auto-fix — the agent can edit files and create PRs
-- Requires `COPILOT_TOKEN` secret (GitHub PAT with Copilot access)
-- Uses the [Copilot CLI](https://github.com/github/copilot-cli) under the hood
-
-### OpenAI
-
-- **Single-prompt** — the entire repo is sent as context in one API call; the model returns a report in a single response (no tool calls or agent loop)
-- **Scan-only** — generates a report but cannot edit files
-- Requires `OPENAI_API_KEY` secret
-- Useful for getting a health report without automated changes
-- Reads source files (`.go`, `.py`, `.js`, `.ts`, etc.) into context for code-level analysis
-- Default model: `o3` (configurable via `model` field)
-- Existing open CSI PRs do not block OpenAI scans
-- **Excluded categories:** Tooling Currency and Dependency Health are skipped because the OpenAI backend has no internet access to verify external resources (package registries, GitHub releases, etc.)
-
-## Installer Options
-
-```
-./install.sh [OPTIONS]
-
-Options:
-  --repo-path <path>       Target repository (default: current directory)
-  --rulesets <list>         Comma-separated rulesets to enable
-  --backend <name>          "copilot" or "openai" (default: copilot)
-  --branch <name>           Base branch for PRs (default: main)
-  --schedule <cron>         Scan schedule (default: "0 10 * * 1")
-  --force                   Overwrite existing CSI files (except .csi.yml)
-  --help                    Show help
-```
-
-The installer is **idempotent** — re-running preserves existing CSI files by default and never overwrites your `.csi.yml` configuration; use `--force` to refresh CSI-managed files.
+You can also [create custom rulesets](docs/SETUP.md#7-configure-csiyml) by adding markdown files to `.github/rulesets/` in your repo.
 
 ## Uninstalling
 
 ```bash
 bash csi/uninstall.sh --repo-path /path/to/your-repo
-
-# Also remove .csi.yml
-bash csi/uninstall.sh --repo-path /path/to/your-repo --remove-config
+bash csi/uninstall.sh --repo-path /path/to/your-repo --remove-config  # also remove .csi.yml
 ```
 
-## Security Model
+## Security
 
-CSI is designed with defense-in-depth:
+- LLM credentials are scoped to the scan step and never persisted
+- All tokens and secrets are redacted from PR descriptions and job summaries
+- The agent never deletes files, modifies secrets/triggers, or changes permissions
+- Stale PRs are auto-closed after a configurable number of days
+- Workflow file edits require an explicit `CSI_PAT` opt-in
 
-- **Isolated authentication** — LLM credentials are scoped to the scan step via an isolated config directory and are not persisted
-- **Report sanitization** — All tokens, API keys, and auth headers are automatically redacted before appearing in PR descriptions or job summaries
-- **Workflow file protection** — Without `CSI_PAT`, changes to `.github/workflows/` are excluded from commits; when `CSI_PAT` is configured, workflow file edits can be included safely
-- **Safety constraints** — The agent is instructed to never delete files without replacement, never modify secrets/triggers/permissions, and keep all changes backward-compatible
-- **Stale PR cleanup** — Unmerged PRs are automatically closed to prevent clutter
-
-### Required Permissions
-
-The workflow needs these GitHub token permissions:
-- `contents: write` — push fix branches
-- `pull-requests: write` — create/close PRs
-- `issues: write` — create labels
-
-## Manual Trigger
-
-You can trigger a scan manually via the GitHub Actions UI or CLI:
-
-```bash
-# Dry run (scan only, no PR)
-gh workflow run csi-run.yml -f dry_run=true
-
-# Full scan and fix
-gh workflow run csi-run.yml
-
-# With a specific model
-gh workflow run csi-run.yml -f model=gpt-5.4
-```
+See the [Setup Guide](docs/SETUP.md) for details on permissions and token scoping.
 
 ## ⚠️ Disclaimer
 
