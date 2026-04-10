@@ -115,7 +115,13 @@ Rulesets are language-aware rule packs that extend the base scan. Enable them in
 
 </details>
 
-You can also [create custom rulesets](docs/SETUP.md#7-configure-csiyml) by adding markdown files to `.github/rulesets/` in your repo.
+You can also [create custom rulesets](docs/SETUP.md#7-configure-csiyml) by adding a markdown file to `.github/rulesets/` in your repo and listing its name in `.csi.yml`:
+
+```yaml
+rulesets:
+  - python
+  - my-custom-rules   # loads .github/rulesets/my-custom-rules.md
+```
 
 ## Uninstalling
 
