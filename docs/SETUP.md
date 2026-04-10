@@ -283,7 +283,7 @@ This will scan, apply one fix, and open a PR.
 
 ### "COPILOT_TOKEN secret is empty or not set"
 
-→ Add the `COPILOT_TOKEN` secret to your repo. See [Step 3A](#option-a-github-copilot-recommended).
+→ Add the `COPILOT_TOKEN` secret to your repo. See [Step 3](#3-configure-the-copilot-token).
 
 ### PR is created but doesn't contain workflow file changes
 
