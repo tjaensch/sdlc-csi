@@ -18,7 +18,7 @@ schedule: "0 10 * * 1"
 base_branch: main
 
 # How many days before an unmerged CSI PR is automatically closed.
-stale_pr_days: 3
+stale_pr_days: 0
 
 # ── LLM Backend ──────────────────────────────────────────────────────────
 # "copilot" — GitHub Copilot CLI (requires COPILOT_TOKEN secret)
