@@ -60,6 +60,7 @@ This copies the following into your repo:
 |------|-------------|---------|
 | `--repo-path <path>` | Target repository root | Current directory |
 | `--rulesets <list>` | Comma-separated rulesets to install | `generic` only |
+| `--backend <name>` | LLM backend to configure during install (Copilot-only) | `copilot` |
 | `--branch <name>` | Base branch for PRs | `main` |
 | `--schedule <cron>` | Cron schedule | `0 10 * * 1` (Monday 10:00 UTC) |
 | `--force` | Overwrite existing CSI files | Off |
