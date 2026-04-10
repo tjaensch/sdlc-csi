@@ -81,7 +81,6 @@ remove_file "$REPO_PATH/.github/workflows/csi-run.yml"
 remove_file "$REPO_PATH/.github/agents/csi-maintainer.agent.md"
 remove_file "$REPO_PATH/.github/scripts/install-copilot-cli.sh"
 remove_file "$REPO_PATH/.github/scripts/sanitize-report.sh"
-remove_file "$REPO_PATH/.github/scripts/openai-scan.py"  # legacy cleanup
 
 # Remove bundled rulesets without touching user-authored files
 remove_installed_rulesets
