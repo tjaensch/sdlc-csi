@@ -84,7 +84,7 @@ if [[ ! -d "$REPO_PATH/.git" ]]; then
 fi
 
 if [[ "$BACKEND" != "copilot" ]]; then
-  echo "Error: Backend must be 'copilot', got '$BACKEND'." >&2
+  echo "Error: Invalid backend '$BACKEND'. The OpenAI backend has been removed. Use 'copilot'." >&2
   exit 1
 fi
 

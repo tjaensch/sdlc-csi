@@ -107,7 +107,7 @@ jobs:
 
           # Validate backend
           if [[ "$BACKEND" != "copilot" ]]; then
-            echo "::error::Invalid backend '$BACKEND' in .csi.yml. Must be 'copilot'."
+            echo "::error::Invalid backend '$BACKEND' in .csi.yml. The OpenAI backend has been removed. Update .csi.yml to use 'backend: copilot' (for example, change 'backend: openai' to 'backend: copilot')."
             exit 1
           fi
 
