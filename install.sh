@@ -304,7 +304,15 @@ else
   echo ""
   echo "📋 Creating .csi.yml..."
 
-  cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
+  if [[ ! -f "$SCRIPT_DIR/.csi.yml" ]]; then
+    echo "Error: Template .csi.yml not found at '$SCRIPT_DIR/.csi.yml'." >&2
+    exit 1
+  fi
+  if [[ "$(cd "$SCRIPT_DIR" && pwd)" == "$(cd "$REPO_PATH" && pwd)" ]]; then
+    echo "   ✓ .csi.yml already present (self-install)"
+  else
+    cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
+  fi
   if ! sync_existing_schedule "$CSI_CONFIG"; then
     echo "   ⚠ Template .csi.yml missing 'schedule' key" >&2
     exit 1
