@@ -166,7 +166,7 @@ def build_scan_failure_report(error_message: str) -> str:
 
         ## Remaining Issues
 
-        1. **[CONFIG_CONSISTENCY] 🔴 HIGH**: OpenAI scan backend could not complete — `.github/scripts/openai-scan.py:135-183`
+        1. **[CONFIG_CONSISTENCY] 🔴 HIGH**: OpenAI scan backend could not complete — `.github/scripts/openai-scan.py:140-188`
 
         ---
 

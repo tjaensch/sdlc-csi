@@ -236,6 +236,7 @@ if [[ -f "$FALLBACK_REPORT" ]]; then
   assert_output_contains "$FALLBACK_OUTPUT" "## Scan Results"
   assert_output_contains "$FALLBACK_OUTPUT" "## Remaining Issues"
   assert_output_contains "$FALLBACK_OUTPUT" "**[CONFIG_CONSISTENCY] 🔴 HIGH**"
+  assert_output_contains "$FALLBACK_OUTPUT" '.github/scripts/openai-scan.py:140-188'
 else
   FAIL=$((FAIL + 1))
   echo "  FAIL: Expected fallback report to exist: $FALLBACK_REPORT"
