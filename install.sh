@@ -252,7 +252,6 @@ schedule: "${SCHEDULE}"
 base_branch: ${BRANCH}
 stale_pr_days: 3
 
-backend: copilot
 model: ""
 timeout: 1800
 
