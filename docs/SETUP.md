@@ -8,7 +8,7 @@ This guide walks you through everything needed to get CSI running in your reposi
 
 1. [Prerequisites](#1-prerequisites)
 2. [Install CSI](#2-install-csi)
-3. [Configure the LLM Backend](#3-configure-the-llm-backend)
+3. [Configure the Copilot Token](#3-configure-the-copilot-token)
 4. [Enable PR Creation](#4-enable-pr-creation)
 5. [Optional: Enable Workflow File Edits](#5-optional-enable-workflow-file-edits)
 6. [Optional: Enable Auto-Delete of Merged Branches](#6-optional-enable-auto-delete-of-merged-branches)
@@ -25,7 +25,7 @@ Before installing CSI, make sure you have:
 - [ ] A **GitHub repository** (public or private)
 - [ ] **Git** installed locally
 - [ ] **GitHub CLI** (`gh`) installed — [install guide](https://cli.github.com/)
-- [ ] A GitHub account with **Copilot access** (for the recommended Copilot backend)
+- [ ] A GitHub account with **Copilot access**
 - [ ] Repository **admin access** (needed for settings and secrets)
 
 ### Verify your tools
@@ -60,7 +60,6 @@ This copies the following into your repo:
 |------|-------------|---------|
 | `--repo-path <path>` | Target repository root | Current directory |
 | `--rulesets <list>` | Comma-separated rulesets to install | `generic` only |
-| `--backend <name>` | LLM backend to configure during install (Copilot-only) | `copilot` |
 | `--branch <name>` | Base branch for PRs | `main` |
 | `--schedule <cron>` | Cron schedule | `0 10 * * 1` (Monday 10:00 UTC) |
 | `--force` | Overwrite existing CSI files | Off |
@@ -76,9 +75,9 @@ bash csi/install.sh \
 
 ---
 
-## 3. Configure the LLM Backend
+## 3. Configure the Copilot Token
 
-CSI uses GitHub Copilot as its LLM backend — it scans **and** applies fixes.
+CSI uses GitHub Copilot to scan and apply fixes.
 
 **Step 1: Create a Personal Access Token (PAT)**
 
@@ -183,9 +182,6 @@ base_branch: main
 
 # Days before stale CSI PRs are auto-closed
 stale_pr_days: 3
-
-# LLM backend
-backend: copilot
 
 # Override the model. Leave empty to auto-select from the
 # workflow's preference list (tries models in order until one works).

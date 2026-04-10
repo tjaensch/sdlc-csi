@@ -75,7 +75,6 @@ CSI is configured via `.csi.yml` in your repository root. The installer creates 
 version: 1
 schedule: "0 10 * * 1"        # weekly Monday 10:00 UTC
 base_branch: main
-backend: copilot
 rulesets:
   - python
   - javascript

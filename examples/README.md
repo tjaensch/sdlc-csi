@@ -13,7 +13,6 @@ version: 1
 schedule: "0 10 * * 1"
 base_branch: main
 stale_pr_days: 3
-backend: copilot
 timeout: 1800
 
 scan:
@@ -45,7 +44,6 @@ custom_rules:
 version: 1
 schedule: "0 10 * * 1"
 base_branch: main
-backend: copilot
 
 scan:
   exclude_paths:

@@ -68,7 +68,6 @@ jobs:
             echo "::notice::No .csi.yml found — using defaults."
             echo "base_branch=main" >> "$GITHUB_OUTPUT"
             echo "stale_pr_days=3" >> "$GITHUB_OUTPUT"
-            echo "backend=copilot" >> "$GITHUB_OUTPUT"
             echo "model=" >> "$GITHUB_OUTPUT"
             echo "timeout=1800" >> "$GITHUB_OUTPUT"
             echo "rulesets=" >> "$GITHUB_OUTPUT"
@@ -85,7 +84,6 @@ jobs:
           # Each field falls back to a sensible default
           BASE_BRANCH=$(yq -r '.base_branch // "main"' "$CONFIG_FILE")
           STALE_DAYS=$(yq -r '.stale_pr_days // 3' "$CONFIG_FILE")
-          BACKEND=$(yq -r '.backend // "copilot"' "$CONFIG_FILE")
           MODEL=$(yq -r '.model // ""' "$CONFIG_FILE")
           TIMEOUT=$(yq -r '.timeout // 1800' "$CONFIG_FILE")
           RULESETS=$(yq -r '(.rulesets // []) | join(",")' "$CONFIG_FILE")
@@ -105,12 +103,6 @@ jobs:
           # Read custom rules
           CUSTOM_RULES=$(yq -r '(.custom_rules // []) | join("\u001f")' "$CONFIG_FILE")
 
-          # Validate backend
-          if [[ "$BACKEND" != "copilot" ]]; then
-            echo "::error::Invalid backend '$BACKEND' in .csi.yml. The OpenAI backend has been removed. Update .csi.yml to use 'backend: copilot' (for example, change 'backend: openai' to 'backend: copilot')."
-            exit 1
-          fi
-
           # Validate timeout
           if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]] || (( TIMEOUT <= 0 )); then
             echo "::error::Invalid timeout '$TIMEOUT' in .csi.yml. Must be a positive integer."
@@ -119,7 +111,6 @@ jobs:
 
           echo "base_branch=$BASE_BRANCH" >> "$GITHUB_OUTPUT"
           echo "stale_pr_days=$STALE_DAYS" >> "$GITHUB_OUTPUT"
-          echo "backend=$BACKEND" >> "$GITHUB_OUTPUT"
           echo "model=$MODEL" >> "$GITHUB_OUTPUT"
           echo "timeout=$TIMEOUT" >> "$GITHUB_OUTPUT"
           echo "rulesets=$RULESETS" >> "$GITHUB_OUTPUT"
@@ -165,7 +156,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BRANCH_NAME: ${{ steps.branch.outputs.name }}
-          BACKEND: ${{ steps.config.outputs.backend }}
         run: |
           set -euo pipefail
           echo "::add-mask::${GH_TOKEN}"
@@ -310,11 +300,10 @@ jobs:
           echo "prompt_file=$PROMPT_FILE" >> "$GITHUB_OUTPUT"
           echo "Prompt built ($(wc -l < "$PROMPT_FILE") lines)"
 
-      # ── Install Copilot CLI (copilot backend) ────────────────────────
+      # ── Install Copilot CLI ────────────────────────────────────────────
       - name: Install Copilot CLI
         if: >-
           steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'copilot'
         id: copilot_cli
         env:
           GH_TOKEN: ${{ secrets.COPILOT_TOKEN }}
@@ -335,12 +324,11 @@ jobs:
         run: |
           git checkout -B "$BRANCH_NAME"
 
-      # ── Run scan: Copilot backend ────────────────────────────────────
-      - name: Run CSI scan (Copilot backend)
+      # ── Run scan ──────────────────────────────────────────────────────
+      - name: Run CSI scan
         if: >-
           steps.existing.outputs.skip != 'true'
-          && steps.config.outputs.backend == 'copilot'
-        id: scan_copilot
+        id: scan
         env:
           COPILOT_PAT: ${{ secrets.COPILOT_TOKEN }}
           COPILOT_TIMEOUT: ${{ inputs.timeout || steps.config.outputs.timeout }}
@@ -505,15 +493,6 @@ jobs:
 
           rm -rf "${GH_CONFIG_DIR:-}"
 
-      # ── Resolve scan outputs ─────────────────────────────────────────
-      - name: Resolve scan outputs
-        if: steps.existing.outputs.skip != 'true'
-        id: scan
-        run: |
-          echo "::notice::LLM backend: copilot"
-          echo "scan_success=${{ steps.scan_copilot.outputs.scan_success }}" >> "$GITHUB_OUTPUT"
-          echo "scan_timed_out=${{ steps.scan_copilot.outputs.scan_timed_out }}" >> "$GITHUB_OUTPUT"
-          echo "report_file=${{ steps.scan_copilot.outputs.report_file }}" >> "$GITHUB_OUTPUT"
 
       # ── Check for changes ────────────────────────────────────────────
       - name: Check for changes
@@ -682,7 +661,6 @@ jobs:
           DATE_STAMP: ${{ steps.branch.outputs.date }}
           HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
-          BACKEND: ${{ steps.config.outputs.backend }}
           SKIPPED: ${{ steps.existing.outputs.skip }}
         run: |
           {
@@ -692,7 +670,6 @@ jobs:
             echo "|-------|-------|"
             echo "| **Date** | ${DATE_STAMP} |"
             echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; else echo '🔧 Scan & Fix'; fi) |"
-            echo "| **Backend** | \`${BACKEND}\` |"
             echo "| **Scan Status** | $(if [[ \"$SKIPPED\" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ \"$SCAN_SUCCESS\" == 'true' ]]; then echo '✅ Success'; elif [[ \"$SCAN_TIMED_OUT\" == 'true' ]]; then echo '⏱️ Timed Out (Partial)'; else echo '❌ Failed'; fi) |"
             if [[ "$SKIPPED" != 'true' ]]; then
               echo "| **Changes Found** | $(if [[ \"$HAS_CHANGES\" == 'true' ]]; then echo 'Yes'; else echo 'No'; fi) |"

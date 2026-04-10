@@ -12,7 +12,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ── Defaults ──────────────────────────────────────────────────────────────
 REPO_PATH="."
 RULESETS=""
-BACKEND="copilot"
 BRANCH="main"
 SCHEDULE="0 10 * * 1"
 SCHEDULE_SET=false
@@ -25,8 +24,6 @@ while [[ $# -gt 0 ]]; do
       shift; REPO_PATH="${1:?--repo-path requires a path argument}"; shift ;;
     --rulesets)
       shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; shift ;;
-    --backend)
-      shift; BACKEND="${1:?--backend requires 'copilot'}"; shift ;;
     --branch)
       shift; BRANCH="${1:?--branch requires a branch name}"; shift ;;
     --schedule)
@@ -60,7 +57,6 @@ Usage:
 Options:
   --repo-path <path>       Target repository root (default: current directory)
   --rulesets <list>         Comma-separated rulesets to enable (e.g., "python,javascript")
-  --backend <name>         LLM backend: "copilot" (default: copilot)
   --branch <name>          Base branch for PRs (default: main)
   --schedule <cron>        Cron schedule for automated scans (default: "0 10 * * 1")
   --force                  Overwrite existing CSI files (except .csi.yml)
@@ -83,13 +79,7 @@ if [[ ! -d "$REPO_PATH/.git" ]]; then
   exit 1
 fi
 
-if [[ "$BACKEND" != "copilot" ]]; then
-  echo "Error: Invalid backend '$BACKEND'. The OpenAI backend has been removed. Use 'copilot'." >&2
-  exit 1
-fi
-
 echo "🔧 Installing CSI into: $REPO_PATH"
-echo "   Backend:  $BACKEND"
 echo "   Branch:   $BRANCH"
 echo "   Schedule: $SCHEDULE"
 [[ -n "$RULESETS" ]] && echo "   Rulesets: $RULESETS"
@@ -262,7 +252,7 @@ schedule: "${SCHEDULE}"
 base_branch: ${BRANCH}
 stale_pr_days: 3
 
-backend: ${BACKEND}
+backend: copilot
 model: ""
 timeout: 1800
 
@@ -297,15 +287,11 @@ echo "✅ CSI installed successfully!"
 echo ""
 echo "Next steps:"
 echo ""
-
-if [[ "$BACKEND" == "copilot" ]]; then
-  echo "  1. Add the COPILOT_TOKEN secret to your repository:"
-  echo "     Settings → Secrets and variables → Actions → New repository secret"
-  echo "     Name: COPILOT_TOKEN"
-  echo "     Value: A GitHub PAT with Copilot access"
-  echo ""
-fi
-
+echo "  1. Add the COPILOT_TOKEN secret to your repository:"
+echo "     Settings → Secrets and variables → Actions → New repository secret"
+echo "     Name: COPILOT_TOKEN"
+echo "     Value: A GitHub PAT with Copilot access"
+echo ""
 echo "  2. Review and customize .csi.yml to match your project."
 echo ""
 echo "  3. Trigger your first scan:"

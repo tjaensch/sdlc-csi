@@ -100,7 +100,6 @@ assert_file_exists "$REPO1/.github/agents/csi-maintainer.agent.md"
 assert_file_exists "$REPO1/.github/scripts/install-copilot-cli.sh"
 assert_file_exists "$REPO1/.github/scripts/sanitize-report.sh"
 assert_file_exists "$REPO1/.github/rulesets/generic.md"
-assert_file_contains "$REPO1/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
 assert_file_contains "$REPO1/.csi.yml" "timeout: 1800"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
@@ -139,7 +138,6 @@ bash "$SCRIPT_DIR/install.sh" \
 
 assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
-assert_file_contains "$REPO2/.csi.yml" "backend: copilot"
 assert_file_contains "$REPO2/.csi.yml" "base_branch: develop"
 assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"
 echo ""
@@ -249,24 +247,6 @@ fi
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "1" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected schedule with 1 field"
-else
-  PASS=$((PASS + 1))
-fi
-echo ""
-
-# ── Test 13: Reject non-copilot --backend values ─────────────────────────
-echo "Test 13: Reject --backend openai"
-REPO_BACKEND="$TEST_DIR/repo_backend"
-mkdir -p "$REPO_BACKEND" && cd "$REPO_BACKEND" && git init -q
-if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_BACKEND" --backend "openai" 2>/dev/null; then
-  FAIL=$((FAIL + 1))
-  echo "  FAIL: Should have rejected backend 'openai'"
-else
-  PASS=$((PASS + 1))
-fi
-if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_BACKEND" --backend "foo" 2>/dev/null; then
-  FAIL=$((FAIL + 1))
-  echo "  FAIL: Should have rejected backend 'foo'"
 else
   PASS=$((PASS + 1))
 fi
