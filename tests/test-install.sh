@@ -117,6 +117,42 @@ assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" 'ALL_RULESETS=("generic")'
 echo ""
 
+# ── Test 1b: Existing .csi.yml schedule is respected on install ───────────
+echo "Test 1b: Existing .csi.yml schedule is respected on install"
+REPO1B="$TEST_DIR/repo1b"
+mkdir -p "$REPO1B" && cd "$REPO1B" && git init -q
+cat > "$REPO1B/.csi.yml" <<'EOF'
+version: 1
+schedule: "15 7 * * 2"
+base_branch: main
+stale_pr_days: 3
+timeout: 1800
+scan:
+  categories:
+    dry_violations: true
+    documentation_drift: true
+    tooling_currency: true
+    dead_code: true
+    code_quality: true
+    security_hygiene: true
+    dependency_health: true
+    config_consistency: true
+  exclude_paths:
+    - "vendor/**"
+    - "node_modules/**"
+    - "dist/**"
+    - ".git/**"
+rulesets: []
+custom_rules: []
+EOF
+
+INSTALL_OUTPUT_REPO1B="$(bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1B")"
+assert_output_contains "$INSTALL_OUTPUT_REPO1B" "Schedule: 15 7 * * 2"
+
+assert_file_contains "$REPO1B/.github/workflows/csi-run.yml" "cron: '15 7 \* \* 2'"
+assert_file_contains "$REPO1B/.csi.yml" 'schedule: "15 7 \* \* 2"'
+echo ""
+
 # ── Test 2: Idempotency — .csi.yml preserved ─────────────────────────────
 echo "Test 2: Re-install preserves .csi.yml"
 echo "# custom comment" >> "$REPO1/.csi.yml"

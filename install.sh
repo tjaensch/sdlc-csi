@@ -91,6 +91,21 @@ validate_cron_expression() {
     validate_cron_field "$weekday" 0 7
 }
 
+read_config_schedule() {
+  local config_path="$1"
+  local config_schedule
+  local -a config_fields
+
+  config_schedule="$(sed -nE 's/^schedule:[[:space:]]*["\x27]?([^"\x27]+)["\x27]?[[:space:]]*$/\1/p' "$config_path" | head -n 1)"
+  [[ -n "$config_schedule" ]] || return 1
+
+  read -ra config_fields <<< "$config_schedule"
+  [[ ${#config_fields[@]} -eq 5 ]] || return 1
+  validate_cron_expression "${config_fields[0]}" "${config_fields[1]}" "${config_fields[2]}" "${config_fields[3]}" "${config_fields[4]}" || return 1
+
+  printf '%s\n' "$config_schedule"
+}
+
 # ── Parse arguments ───────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -157,11 +172,6 @@ if [[ ! -d "$REPO_PATH/.git" ]]; then
   exit 1
 fi
 
-echo "🔧 Installing CSI into: $REPO_PATH"
-echo "   Branch:   $BRANCH"
-echo "   Schedule: $SCHEDULE"
-[[ -n "$RULESETS" ]] && echo "   Rulesets: $RULESETS"
-
 # ── Helper: copy file with optional force ─────────────────────────────────
 copy_file() {
   local src="$1"
@@ -192,6 +202,16 @@ WORKFLOW_DST="$REPO_PATH/.github/workflows/csi-run.yml"
 WORKFLOW_PREEXISTED=false
 [[ -e "$WORKFLOW_DST" ]] && WORKFLOW_PREEXISTED=true
 
+# When installing into a repo that already has .csi.yml, keep its schedule in sync.
+if [[ "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED" == "false" && -f "$REPO_PATH/.csi.yml" ]]; then
+  existing_config_schedule="$(read_config_schedule "$REPO_PATH/.csi.yml" || true)"
+  if [[ -n "$existing_config_schedule" ]]; then
+    SCHEDULE="$existing_config_schedule"
+  else
+    echo "   ⚠ Existing .csi.yml schedule is invalid; using default schedule '${SCHEDULE}'."
+  fi
+fi
+
 # When forcing without an explicit --schedule, preserve the existing workflow cron
 if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED" == "true" ]]; then
   existing_cron="$(grep -m1 "[[:space:]]*-[[:space:]]*cron:" "$WORKFLOW_DST" | sed "s/.*cron:[[:space:]]*['\"]\\{0,1\\}//; s/['\"]\\{0,1\\}[[:space:]]*$//" || true)"
@@ -205,6 +225,11 @@ if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED"
     fi
   fi
 fi
+
+echo "🔧 Installing CSI into: $REPO_PATH"
+echo "   Branch:   $BRANCH"
+echo "   Schedule: $SCHEDULE"
+[[ -n "$RULESETS" ]] && echo "   Rulesets: $RULESETS"
 
 copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$WORKFLOW_DST"
 
