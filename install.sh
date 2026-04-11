@@ -367,6 +367,7 @@ sync_existing_rulesets() {
         next
       }
       in_rulesets == 1 && /^  - / { next }
+      in_rulesets == 1 && /^($|  |#)/ { print; next }
       in_rulesets == 1 { in_rulesets = 0 }
       { print }
       END { exit(updated ? 0 : 1) }

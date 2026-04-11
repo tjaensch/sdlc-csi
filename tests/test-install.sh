@@ -149,11 +149,16 @@ echo ""
 # ── Test 2d: Force re-install syncs explicit ruleset changes ──────────────
 echo "Test 2d: Re-install with --force syncs rulesets into .csi.yml"
 
+# First install with a single ruleset so the config has an active entry
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --rulesets "python" --force
+assert_file_matches "$REPO1/.csi.yml" '^  - python$'
+
+# Now force-reinstall with a different set — old entry should be replaced
 bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --rulesets "bash,python" --force
 
 assert_file_matches "$REPO1/.csi.yml" '^  - bash$'
 assert_file_matches "$REPO1/.csi.yml" '^  - python$'
-RULESET_COUNT="$(grep -c '^  - ' "$REPO1/.csi.yml")"
+RULESET_COUNT="$(sed 's/\r$//' "$REPO1/.csi.yml" | grep -c '^  - ')"
 if [[ "$RULESET_COUNT" -eq 2 ]]; then
   PASS=$((PASS + 1))
 else
