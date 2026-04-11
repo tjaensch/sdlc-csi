@@ -146,6 +146,28 @@ assert_file_contains "$REPO1/.csi.yml" "# custom comment"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '15 7 \* \* 2'"
 echo ""
 
+# ── Test 2d: Force re-install syncs explicit ruleset changes ──────────────
+echo "Test 2d: Re-install with --force syncs rulesets into .csi.yml"
+
+# First install with a single ruleset so the config has an active entry
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --rulesets "python" --force
+assert_file_matches "$REPO1/.csi.yml" '^  - python$'
+
+# Now force-reinstall with a different set — old entry should be replaced
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --rulesets "bash,python" --force
+
+assert_file_matches "$REPO1/.csi.yml" '^  - bash$'
+assert_file_matches "$REPO1/.csi.yml" '^  - python$'
+RULESET_COUNT="$(sed 's/\r$//' "$REPO1/.csi.yml" | grep -c '^  - ')"
+if [[ "$RULESET_COUNT" -eq 2 ]]; then
+  PASS=$((PASS + 1))
+else
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Expected exactly 2 active rulesets after sync, found $RULESET_COUNT"
+fi
+assert_file_contains "$REPO1/.csi.yml" "# custom comment"
+echo ""
+
 # ── Test 3: Install with rulesets and options ─────────────────────────────
 echo "Test 3: Install with rulesets and custom options"
 REPO2="$TEST_DIR/repo2"

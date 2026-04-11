@@ -12,6 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ── Defaults ──────────────────────────────────────────────────────────────
 REPO_PATH="."
 RULESETS=""
+RULESETS_SET=false
 BRANCH="main"
 BRANCH_SET=false
 SCHEDULE="0 10 * * 1"
@@ -96,7 +97,7 @@ while [[ $# -gt 0 ]]; do
     --repo-path)
       shift; REPO_PATH="${1:?--repo-path requires a path argument}"; shift ;;
     --rulesets)
-      shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; shift ;;
+      shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; RULESETS_SET=true; shift ;;
     --branch)
       shift; BRANCH="${1:?--branch requires a branch name}"; BRANCH_SET=true; shift ;;
     --schedule)
@@ -353,6 +354,7 @@ sync_existing_rulesets() {
       BEGIN {
         updated = 0
         count = split(ENVIRON["RULESETS_YAML_ENV"], lines, "\n")
+        in_rulesets = 0
       }
       /^rulesets:[[:space:]]*/ && updated == 0 {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
@@ -361,8 +363,12 @@ sync_existing_rulesets() {
           printf "%s%s\n", lines[i], cr
         }
         updated = 1
+        in_rulesets = 1
         next
       }
+      in_rulesets == 1 && /^[[:space:]]+-[[:space:]]/ { next }
+      in_rulesets == 1 && /^($|[[:space:]]|#)/ { print; next }
+      in_rulesets == 1 { in_rulesets = 0 }
       { print }
       END { exit(updated ? 0 : 1) }
     ' "$config_path" > "$tmp_config"; then
@@ -390,6 +396,17 @@ if [[ -f "$CSI_CONFIG" ]]; then
       echo "   ✓ Updated base branch in: $CSI_CONFIG"
     else
       echo "   ⚠ Could not update base branch in: $CSI_CONFIG"
+    fi
+  fi
+  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" && ${#VALID_RULESETS[@]} -gt 0 ]]; then
+    RULESETS_YAML=""
+    for ruleset in "${VALID_RULESETS[@]}"; do
+      RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"
+    done
+    if sync_existing_rulesets "$CSI_CONFIG" "$RULESETS_YAML"; then
+      echo "   ✓ Updated rulesets in: $CSI_CONFIG"
+    else
+      echo "   ⚠ Could not update rulesets in: $CSI_CONFIG"
     fi
   fi
 else
