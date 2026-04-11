@@ -24,7 +24,7 @@ validate_cron_numeric() {
   local max="$3"
 
   [[ "$value" =~ ^[0-9]+$ ]] || return 1
-  (( value >= min && value <= max ))
+  (( 10#$value >= min && 10#$value <= max ))
 }
 
 validate_cron_segment() {
@@ -41,7 +41,7 @@ validate_cron_segment() {
     local range_end="${BASH_REMATCH[2]}"
     validate_cron_numeric "$range_start" "$min" "$max" || return 1
     validate_cron_numeric "$range_end" "$min" "$max" || return 1
-    (( range_start <= range_end ))
+    (( 10#$range_start <= 10#$range_end ))
     return $?
   fi
 
@@ -55,6 +55,8 @@ validate_cron_field() {
   local item base step extra
   local -a items
 
+  [[ -n "$field" ]] || return 1
+  [[ "$field" != ,* && "$field" != *, && "$field" != *,,* ]] || return 1
   IFS=',' read -ra items <<< "$field"
   for item in "${items[@]}"; do
     [[ -n "$item" ]] || return 1
@@ -63,6 +65,7 @@ validate_cron_field() {
     step=""
     extra=""
     if [[ "$item" == */* ]]; then
+      [[ "$item" != */ ]] || return 1
       IFS='/' read -r base step extra <<< "$item"
       [[ -n "$base" && -n "$step" && -z "$extra" ]] || return 1
       [[ "$step" =~ ^[0-9]+$ ]] || return 1
