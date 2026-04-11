@@ -129,7 +129,7 @@ git -C "$REPO1A_ORIGIN" symbolic-ref HEAD refs/heads/develop
 git clone -q "$REPO1A_ORIGIN" "$REPO1A"
 # Create an initial commit so the branch exists
 git -C "$REPO1A" checkout -q -b develop
-git -C "$REPO1A" commit -q --allow-empty -m "init"
+git -C "$REPO1A" -c user.name="test" -c user.email="test@test" commit -q --allow-empty -m "init"
 git -C "$REPO1A" push -q origin develop 2>/dev/null
 
 bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1A"
