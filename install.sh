@@ -150,7 +150,7 @@ Usage:
 Options:
   --repo-path <path>       Target repository root (default: current directory)
   --rulesets <list>         Comma-separated rulesets to enable (e.g., "python,javascript")
-  --branch <name>          Base branch for PRs (default: main)
+  --branch <name>          Base branch for PRs (default: auto-detected from repo)
   --schedule <cron>        Cron schedule for automated scans (default: "0 10 * * 1")
   --force                  Overwrite existing CSI files (except .csi.yml)
   --help                   Show this help message
@@ -170,6 +170,20 @@ REPO_PATH="$(cd "$REPO_PATH" && pwd)"
 if [[ ! -d "$REPO_PATH/.git" ]]; then
   echo "Error: '$REPO_PATH' is not a git repository." >&2
   exit 1
+fi
+
+# Auto-detect default branch if --branch was not explicitly provided
+if [[ "$BRANCH_SET" == "false" ]]; then
+  detected_branch=""
+  if git -C "$REPO_PATH" config --get remote.origin.url &>/dev/null; then
+    detected_branch="$(git -C "$REPO_PATH" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || true)"
+  fi
+  if [[ -z "$detected_branch" ]]; then
+    detected_branch="$(git -C "$REPO_PATH" symbolic-ref --short HEAD 2>/dev/null || true)"
+  fi
+  if [[ -n "$detected_branch" && "$detected_branch" != "HEAD" ]]; then
+    BRANCH="$detected_branch"
+  fi
 fi
 
 # ── Helper: copy file with optional force ─────────────────────────────────
@@ -480,12 +494,12 @@ echo "     Value: A GitHub PAT with Copilot access"
 echo ""
 echo "  2. Review and customize .csi.yml to match your project."
 echo ""
-echo "  3. Trigger your first scan:"
-echo "     gh workflow run csi-run.yml -f dry_run=true"
-echo ""
-echo "  4. Commit the installed files:"
+echo "  3. Commit and push the installed files:"
 echo "     git add .csi.yml .github/workflows/csi-run.yml .github/agents/ .github/scripts/ .github/rulesets/"
 echo "     git commit -m 'chore: install CSI automated maintenance'"
 echo "     git push"
+echo ""
+echo "  4. Trigger your first scan:"
+echo "     gh workflow run csi-run.yml -f dry_run=true"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
