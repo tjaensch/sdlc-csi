@@ -180,7 +180,7 @@ if [[ -n "$RULESETS" ]]; then
   done
 fi
 
-# ── Helper: sync schedule in an existing .csi.yml when explicitly requested ─
+# ── Helpers: sync schedule/base_branch/rulesets in .csi.yml ─────────────────
 # Helper: create a temp file preserving permissions of the original
 make_config_tmp() {
   local config_path="$1"
@@ -235,7 +235,7 @@ sync_existing_base_branch() {
       BEGIN { updated = 0 }
       /^base_branch:[[:space:]]*/ && updated == 0 {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
-        printf "base_branch: %s%s\n", branch, cr
+        printf "base_branch: \"%s\"%s\n", branch, cr
         updated = 1
         next
       }
@@ -258,10 +258,10 @@ sync_existing_rulesets() {
     tmp_config="$(make_config_tmp "$config_path")"
     trap 'rm -f "$tmp_config"' EXIT
 
-    if ! awk -v rulesets_yaml="$rulesets_yaml" '
+    if ! RULESETS_YAML_ENV="$rulesets_yaml" awk '
       BEGIN {
         updated = 0
-        count = split(rulesets_yaml, lines, "\n")
+        count = split(ENVIRON["RULESETS_YAML_ENV"], lines, "\n")
       }
       /^rulesets:[[:space:]]*/ && updated == 0 {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
