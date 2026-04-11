@@ -180,27 +180,95 @@ if [[ -n "$RULESETS" ]]; then
   done
 fi
 
-# ── Helper: sync schedule in an existing .csi.yml when explicitly requested ─
+# ── Helpers: sync schedule/base_branch/rulesets in .csi.yml ─────────────────
+# Helper: create a temp file preserving permissions of the original
+make_config_tmp() {
+  local config_path="$1"
+  local tmp_config
+  tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+  if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
+    :
+  else
+    local orig_mode
+    orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
+    [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
+  fi
+  echo "$tmp_config"
+}
+
 sync_existing_schedule() {
   local config_path="$1"
 
   (
     local tmp_config
-    tmp_config="$(mktemp "$(dirname "$config_path")/.csi-config-tmp.XXXXXX")"
+    tmp_config="$(make_config_tmp "$config_path")"
     trap 'rm -f "$tmp_config"' EXIT
-
-    if chmod --reference="$config_path" "$tmp_config" 2>/dev/null; then
-      :
-    else
-      orig_mode="$(stat -f '%Lp' "$config_path" 2>/dev/null || true)"
-      [[ -n "$orig_mode" ]] && chmod "$orig_mode" "$tmp_config"
-    fi
 
     if ! awk -v schedule="$SCHEDULE" '
       BEGIN { updated = 0 }
       /^schedule:[[:space:]]*/ && updated == 0 {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
         printf "schedule: \"%s\"%s\n", schedule, cr
+        updated = 1
+        next
+      }
+      { print }
+      END { exit(updated ? 0 : 1) }
+    ' "$config_path" > "$tmp_config"; then
+      exit 1
+    fi
+
+    mv "$tmp_config" "$config_path"
+  )
+}
+
+
+sync_existing_base_branch() {
+  local config_path="$1"
+
+  (
+    local tmp_config
+    tmp_config="$(make_config_tmp "$config_path")"
+    trap 'rm -f "$tmp_config"' EXIT
+
+    if ! awk -v branch="$BRANCH" '
+      BEGIN { updated = 0 }
+      /^base_branch:[[:space:]]*/ && updated == 0 {
+        cr = (substr($0, length($0)) == "\r") ? "\r" : ""
+        printf "base_branch: %s%s\n", branch, cr
+        updated = 1
+        next
+      }
+      { print }
+      END { exit(updated ? 0 : 1) }
+    ' "$config_path" > "$tmp_config"; then
+      exit 1
+    fi
+
+    mv "$tmp_config" "$config_path"
+  )
+}
+
+sync_existing_rulesets() {
+  local config_path="$1"
+  local rulesets_yaml="$2"
+
+  (
+    local tmp_config
+    tmp_config="$(make_config_tmp "$config_path")"
+    trap 'rm -f "$tmp_config"' EXIT
+
+    if ! RULESETS_YAML_ENV="$rulesets_yaml" awk '
+      BEGIN {
+        updated = 0
+        count = split(ENVIRON["RULESETS_YAML_ENV"], lines, "\n")
+      }
+      /^rulesets:[[:space:]]*/ && updated == 0 {
+        cr = (substr($0, length($0)) == "\r") ? "\r" : ""
+        printf "rulesets:%s\n", cr
+        for (i = 1; i <= count; i++) {
+          printf "%s%s\n", lines[i], cr
+        }
         updated = 1
         next
       }
@@ -230,51 +298,30 @@ else
   echo ""
   echo "📋 Creating .csi.yml..."
 
-  # Build rulesets YAML list from rulesets that were actually installed
-  RULESETS_YAML="[]"
+  if [[ ! -f "$SCRIPT_DIR/.csi.yml" ]]; then
+    echo "Error: Template .csi.yml not found at '$SCRIPT_DIR/.csi.yml'." >&2
+    exit 1
+  fi
+  cp "$SCRIPT_DIR/.csi.yml" "$CSI_CONFIG"
+  if ! sync_existing_schedule "$CSI_CONFIG"; then
+    echo "   ⚠ Template .csi.yml missing 'schedule' key" >&2
+    exit 1
+  fi
+  if ! sync_existing_base_branch "$CSI_CONFIG"; then
+    echo "   ⚠ Template .csi.yml missing 'base_branch' key" >&2
+    exit 1
+  fi
 
   if [[ ${#VALID_RULESETS[@]} -gt 0 ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
-      RULESETS_YAML="${RULESETS_YAML}\n  - ${ruleset}"
+      RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"
     done
+    if ! sync_existing_rulesets "$CSI_CONFIG" "$RULESETS_YAML"; then
+      echo "   ⚠ Template .csi.yml missing 'rulesets' key" >&2
+      exit 1
+    fi
   fi
-
-  cat > "$CSI_CONFIG" << CONFIG_EOF
-# ─────────────────────────────────────────────────────────────────────────────
-# .csi.yml — Continuous Self-Improvement configuration
-# ─────────────────────────────────────────────────────────────────────────────
-# Documentation: https://github.com/tjaensch/csi#configuration
-# ─────────────────────────────────────────────────────────────────────────────
-version: 1
-
-schedule: "${SCHEDULE}"
-base_branch: ${BRANCH}
-stale_pr_days: 3
-
-model: ""
-timeout: 1800
-
-scan:
-  categories:
-    dry_violations: true
-    documentation_drift: true
-    tooling_currency: true
-    dead_code: true
-    code_quality: true
-    security_hygiene: true
-    dependency_health: true
-    config_consistency: true
-  exclude_paths:
-    - "vendor/**"
-    - "node_modules/**"
-    - "dist/**"
-    - ".git/**"
-
-rulesets: $(printf '%b' "$RULESETS_YAML")
-
-custom_rules: []
-CONFIG_EOF
 
   echo "   ✓ Created: $CSI_CONFIG"
 fi
