@@ -423,7 +423,7 @@ if [[ -f "$CSI_CONFIG" ]]; then
       echo "   ⚠ Could not update base branch in: $CSI_CONFIG"
     fi
   fi
-  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" && ${#VALID_RULESETS[@]} -gt 0 ]]; then
+  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
       RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"
