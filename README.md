@@ -147,7 +147,7 @@ CSI uses LLM-generated analysis and code changes. LLM output **can be wrong, inc
 - **Recurring proposals**: The agent may re-propose fixes that were previously declined. Use `ignore_issues` in `.csi.yml` to suppress them permanently.
 - **False positives**: Not every finding is a real bug. The agent optimizes for surfacing potential issues — some will be noise. Always review PRs before merging.
 - **Self-referential confusion**: In repos where CSI maintains itself, the agent can mistake its own configuration for template or installer bugs.
-- **Review feedback loops**: Copilot reviewer comments on CSI-generated PRs can feed back into the agent's next scan, creating a cycle of churn. A `.github/copilot-instructions.md` file that scopes reviews to bugs, security, and correctness helps reduce this.
+- **Review feedback loops**: Copilot reviewer comments on CSI-generated PRs can feed back into the agent's next scan, creating a cycle of churn. A `.github/copilot-instructions.md` file that scopes reviews to bugs, security, correctness, and data loss helps reduce this.
 
 ## FAQ
 
