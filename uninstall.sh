@@ -100,3 +100,8 @@ remove_dir_if_empty "$REPO_PATH/.github/rulesets"
 
 echo ""
 echo "✅ CSI uninstalled."
+echo ""
+echo "Next steps — commit and push the removal:"
+echo "  git add -A .github/ .csi.yml"
+echo "  git commit -m 'chore: remove CSI automated maintenance'"
+echo "  git push"
