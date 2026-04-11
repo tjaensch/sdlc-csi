@@ -102,6 +102,10 @@ echo ""
 echo "✅ CSI uninstalled."
 echo ""
 echo "Next steps — commit and push the removal:"
-echo "  git add -A .github/ .csi.yml"
+add_paths=".github/workflows/csi-run.yml .github/agents .github/scripts .github/rulesets"
+if [[ "$REMOVE_CONFIG" == "true" ]]; then
+  add_paths="$add_paths .csi.yml"
+fi
+echo "  git add -A $add_paths"
 echo "  git commit -m 'chore: remove CSI automated maintenance'"
 echo "  git push"
