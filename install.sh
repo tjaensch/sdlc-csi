@@ -175,7 +175,7 @@ fi
 # Auto-detect default branch if --branch was not explicitly provided
 if [[ "$BRANCH_SET" == "false" ]]; then
   detected_branch=""
-  if git -C "$REPO_PATH" remote show origin &>/dev/null; then
+  if git -C "$REPO_PATH" config --get remote.origin.url &>/dev/null; then
     detected_branch="$(git -C "$REPO_PATH" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||' || true)"
   fi
   if [[ -z "$detected_branch" ]]; then
