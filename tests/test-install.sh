@@ -143,6 +143,7 @@ bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --branch "develop" --force
 
 assert_file_contains "$REPO1/.csi.yml" 'base_branch: develop'
 assert_file_contains "$REPO1/.csi.yml" "# custom comment"
+assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '15 7 \* \* 2'"
 echo ""
 
 # ── Test 3: Install with rulesets and options ─────────────────────────────

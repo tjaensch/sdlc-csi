@@ -115,6 +115,14 @@ WORKFLOW_DST="$REPO_PATH/.github/workflows/csi-run.yml"
 WORKFLOW_PREEXISTED=false
 [[ -e "$WORKFLOW_DST" ]] && WORKFLOW_PREEXISTED=true
 
+# When forcing without an explicit --schedule, preserve the existing workflow cron
+if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED" == "true" ]]; then
+  existing_cron="$(grep -m1 "^    - cron:" "$WORKFLOW_DST" | sed "s/.*cron: '\\(.*\\)'/\\1/" || true)"
+  if [[ -n "$existing_cron" ]]; then
+    SCHEDULE="$existing_cron"
+  fi
+fi
+
 copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$WORKFLOW_DST"
 
 # Patch the schedule cron only when the workflow was actually installed/overwritten
