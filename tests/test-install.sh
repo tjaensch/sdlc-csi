@@ -204,6 +204,14 @@ fi
 assert_file_contains "$REPO1/.csi.yml" "# custom comment"
 echo ""
 
+echo "Test 2e: Re-install with only invalid rulesets clears previous rulesets"
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --rulesets "not-a-real-ruleset" --force
+assert_file_contains "$REPO1/.csi.yml" "rulesets:"
+assert_file_not_contains "$REPO1/.csi.yml" "  - bash"
+assert_file_not_contains "$REPO1/.csi.yml" "  - python"
+assert_file_contains "$REPO1/.csi.yml" "# custom comment"
+echo ""
+
 # ── Test 3: Install with rulesets and options ─────────────────────────────
 echo "Test 3: Install with rulesets and custom options"
 REPO2="$TEST_DIR/repo2"
