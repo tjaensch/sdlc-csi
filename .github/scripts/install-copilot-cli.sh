@@ -9,7 +9,7 @@
 #   .github/scripts/install-copilot-cli.sh [--pin <tag>]
 #
 # Arguments:
-#   --pin <tag>  Pin to a specific release tag (e.g., v1.0.7). Skips latest
+#   --pin <tag>  Pin to a specific release tag (e.g., v1.0.24). Skips latest
 #                and fallback versions — only the pinned tag is attempted.
 #
 # Environment variables:
@@ -22,7 +22,7 @@
 #   GITHUB_PATH           If set, appends install dir to $PATH for later steps.
 #
 # Outputs (GITHUB_OUTPUT when running in Actions):
-#   cli_version          Parsed version tag  (e.g., v1.0.7)
+#   cli_version          Parsed version tag  (e.g., v1.0.24)
 #   cli_version_output   Raw `copilot --version` line
 # ────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -55,11 +55,11 @@ while [[ $# -gt 0 ]]; do
       shift
       PIN_VERSION="${1:-}"
       if [[ -z "$PIN_VERSION" ]]; then
-        echo "::error::--pin requires a version tag argument (e.g., v1.0.7)"
+        echo "::error::--pin requires a version tag argument (e.g., v1.0.24)"
         exit 1
       fi
       if [[ ! "$PIN_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([._-][0-9A-Za-z]+)*$ ]]; then
-        echo "::error::Invalid pinned version '$PIN_VERSION'. Expected tag format like v1.0.7"
+        echo "::error::Invalid pinned version '$PIN_VERSION'. Expected tag format like v1.0.24"
         exit 1
       fi
       shift
@@ -114,8 +114,8 @@ else
         echo "ℹ Will try: latest → ${VERSIONS_TO_TRY[*]:1}"
       fi
     else
-      VERSIONS_TO_TRY+=("v1.0.7")
-      echo "::warning::Could not list releases from ${REPO}; using hardcoded fallback v1.0.7"
+      VERSIONS_TO_TRY+=("v1.0.24")
+      echo "::warning::Could not list releases from ${REPO}; using hardcoded fallback v1.0.24"
     fi
   fi
 fi
