@@ -8,16 +8,16 @@ Automated repository health scanning and maintenance for any codebase. CSI uses 
 Weekly Schedule (or manual trigger)
     │
     ▼
-┌─────────────────────────────────┐
+┌──────────────────────────────────┐
 │  CSI Workflow (.github/workflows)│
-│                                 │
-│  1. Read .csi.yml config        │
-│  2. Build agent prompt          │
-│     + enabled rulesets          │
-│  3. Run LLM scan (Copilot)     │
-│  4. Apply ONE fix               │
-│  5. Open PR with report         │
-└─────────────────────────────────┘
+│                                  │
+│  1. Read .csi.yml config         │
+│  2. Build agent prompt           │
+│     + enabled rulesets           │
+│  3. Run LLM scan (Copilot)       │
+│  4. Apply ONE fix                │
+│  5. Open PR with report          │
+└──────────────────────────────────┘
     │
     ▼
 Small, reviewable PR with:
