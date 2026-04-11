@@ -218,6 +218,11 @@ rulesets:
 # custom_rules:
 #   - "All API endpoints must have OpenAPI documentation"
 #   - "Database migrations must be reversible"
+
+# Suppress specific findings that have been reviewed and intentionally declined.
+# Each entry is a substring matched case-insensitively against issue descriptions.
+# ignore_issues:
+#   - "empty rulesets"
 ```
 
 ### Scan categories explained

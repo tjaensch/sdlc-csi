@@ -154,7 +154,14 @@ CSI applies one minimal fix per run and opens a PR for human review. It never pu
 Yes. The Copilot backend requires a PAT with appropriate access.
 
 **Q: What if the fix is wrong?**
-Close the PR. CSI will re-evaluate the issue in a future run. You can also add `custom_rules` to guide the agent's behavior.
+Close the PR. CSI will re-evaluate the issue in a future run. You can also add `custom_rules` to guide the agent's behavior, or add the issue description to `ignore_issues` in `.csi.yml` to permanently suppress it.
+
+**Q: CSI keeps proposing the same fix I already declined. How do I stop it?**
+Add a substring of the issue description to `ignore_issues` in `.csi.yml`. Matching is case-insensitive. For example:
+```yaml
+ignore_issues:
+  - "empty rulesets"
+```
 
 **Q: Can I disable specific scan categories?**
 Yes. Set any category to `false` in `.csi.yml` under `scan.categories`.

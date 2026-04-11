@@ -77,6 +77,8 @@ These constraints override all other behavior:
 │   └─ PARSE: Excluded paths (scan.exclude_paths[])
 │   └─ PARSE: Active rulesets (rulesets[])
 │   └─ PARSE: Custom rules (custom_rules[])
+│   └─ PARSE: Ignored issues (ignore_issues[]) — each entry has a description substring;
+│            any finding whose description matches an ignore_issues entry must be skipped
 │
 ├─ IF .csi.yml is missing:
 │   └─ USE defaults: all 8 categories enabled, no exclusions, generic ruleset only
@@ -259,7 +261,11 @@ These constraints override all other behavior:
 │   ├─ 🟡 MEDIUM: Outdated versions, documentation drift, DRY violations, code quality
 │   └─ 🟢 LOW: Dead code, minor inconsistencies, style issues
 │
-├─ SELECT the single highest-priority finding
+├─ FILTER OUT any finding whose description matches an ignore_issues[] entry
+│   └─ Matching is case-insensitive substring match
+│   └─ Ignored findings must NOT appear in "Applied Fix" or "Remaining Issues"
+│
+├─ SELECT the single highest-priority finding from the remaining list
 │   └─ PREFER: Issues that affect security or correctness over style
 │   └─ PREFER: Issues with small, focused fixes over large refactors
 │   └─ PREFER: Issues that unblock or improve other automation

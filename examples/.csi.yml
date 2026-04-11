@@ -81,3 +81,11 @@ custom_rules: []
   # - "All Python files must use type hints for function signatures"
   # - "Every module must have a README.md"
   # - "Docker images must not use the :latest tag"
+
+# ── Ignored issues ───────────────────────────────────────────────────────
+# Suppress specific findings that have been reviewed and intentionally declined.
+# Each entry is a substring matched case-insensitively against issue descriptions.
+# Matching issues will not appear in "Applied Fix" or "Remaining Issues".
+ignore_issues: []
+  # - "empty rulesets"
+  # - "stale rulesets when no valid"
