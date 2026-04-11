@@ -97,7 +97,12 @@ while [[ $# -gt 0 ]]; do
     --repo-path)
       shift; REPO_PATH="${1:?--repo-path requires a path argument}"; shift ;;
     --rulesets)
-      shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; RULESETS_SET=true; shift ;;
+      shift
+      if [[ $# -eq 0 ]]; then
+        echo 'Error: --rulesets requires an argument (use "" to clear configured rulesets).' >&2
+        exit 1
+      fi
+      RULESETS="${1-}"; RULESETS_SET=true; shift ;;
     --branch)
       shift; BRANCH="${1:?--branch requires a branch name}"; BRANCH_SET=true; shift ;;
     --schedule)
@@ -134,7 +139,7 @@ Usage:
 
 Options:
   --repo-path <path>       Target repository root (default: current directory)
-  --rulesets <list>         Comma-separated rulesets to enable (e.g., "python,javascript")
+  --rulesets <list>         Comma-separated rulesets to enable (e.g., "python,javascript"; use "" with --force to clear)
   --branch <name>          Base branch for PRs (default: main)
   --schedule <cron>        Cron schedule for automated scans (default: "0 10 * * 1")
   --force                  Overwrite existing CSI files (except .csi.yml)
@@ -398,7 +403,7 @@ if [[ -f "$CSI_CONFIG" ]]; then
       echo "   ⚠ Could not update base branch in: $CSI_CONFIG"
     fi
   fi
-  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" && ${#VALID_RULESETS[@]} -gt 0 ]]; then
+  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
       RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"
