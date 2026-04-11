@@ -69,7 +69,7 @@ validate_cron_field() {
       IFS='/' read -r base step extra <<< "$item"
       [[ -n "$base" && -n "$step" && -z "$extra" ]] || return 1
       [[ "$step" =~ ^[0-9]+$ ]] || return 1
-      (( step > 0 )) || return 1
+      (( 10#$step > 0 )) || return 1
     fi
 
     validate_cron_segment "$base" "$min" "$max" || return 1
