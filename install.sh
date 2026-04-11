@@ -502,4 +502,17 @@ echo ""
 echo "  4. Trigger your first scan:"
 echo "     gh workflow run csi-run.yml -f dry_run=true"
 echo ""
+echo "     Without gh CLI, use curl instead:"
+origin_url="$(git -C "$REPO_PATH" config --get remote.origin.url 2>/dev/null || true)"
+gh_repo="$(echo "$origin_url" | sed -E 's#(https://github\.com/|git@github\.com:)##; s/\.git$//')"
+if [[ -n "$gh_repo" ]]; then
+  echo "     curl -X POST -H 'Authorization: token YOUR_PAT' \\"
+  echo "       https://api.github.com/repos/$gh_repo/actions/workflows/csi-run.yml/dispatches \\"
+  echo "       -d '{\"ref\":\"$BRANCH\",\"inputs\":{\"dry_run\":\"true\"}}'"
+else
+  echo "     curl -X POST -H 'Authorization: token YOUR_PAT' \\"
+  echo "       https://api.github.com/repos/OWNER/REPO/actions/workflows/csi-run.yml/dispatches \\"
+  echo "       -d '{\"ref\":\"$BRANCH\",\"inputs\":{\"dry_run\":\"true\"}}'"
+fi
+echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
