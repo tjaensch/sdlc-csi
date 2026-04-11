@@ -280,6 +280,26 @@ else
 fi
 echo ""
 
+# ── Test 13: Reject schedule fields outside supported cron ranges ─────────
+echo "Test 13: Reject out-of-range cron fields"
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "60 24 32 13 8" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with out-of-range values"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
+# ── Test 14: Reject invalid cron step values ──────────────────────────────
+echo "Test 14: Reject invalid cron step values"
+if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "*/0 * * * *" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected schedule with zero step"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
 # ── Results ───────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Results: $PASS passed, $FAIL failed"
