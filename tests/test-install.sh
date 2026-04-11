@@ -127,10 +127,12 @@ git init -q --bare "$REPO1A_ORIGIN"
 git -C "$REPO1A_ORIGIN" symbolic-ref HEAD refs/heads/develop
 # Clone it so origin/HEAD is set
 git clone -q "$REPO1A_ORIGIN" "$REPO1A"
-# Create an initial commit so the branch exists
-git -C "$REPO1A" checkout -q -b develop
+# Create an initial commit so the branch exists (checkout safely in case clone already landed on develop)
+git -C "$REPO1A" checkout -q develop 2>/dev/null || git -C "$REPO1A" checkout -q -b develop
 git -C "$REPO1A" -c user.name="test" -c user.email="test@test" commit -q --allow-empty -m "init"
 git -C "$REPO1A" push -q origin develop 2>/dev/null
+# Ensure origin/HEAD is set correctly after push (not guaranteed by clone of empty repo)
+git -C "$REPO1A" remote set-head origin -a 2>/dev/null
 
 bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1A"
 
