@@ -193,9 +193,15 @@ WORKFLOW_PREEXISTED=false
 
 # When forcing without an explicit --schedule, preserve the existing workflow cron
 if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED" == "true" ]]; then
-  existing_cron="$(grep -m1 "[[:space:]]*-[[:space:]]*cron:" "$WORKFLOW_DST" | sed "s/.*cron:[[:space:]]*['\"]\\{0,1\\}\\(.*\\)['\"]\\{0,1\\}[[:space:]]*/\\1/" || true)"
+  existing_cron="$(grep -m1 "[[:space:]]*-[[:space:]]*cron:" "$WORKFLOW_DST" | sed "s/.*cron:[[:space:]]*['\"]\\{0,1\\}//; s/['\"]\\{0,1\\}[[:space:]]*$//" || true)"
   if [[ -n "$existing_cron" ]]; then
-    SCHEDULE="$existing_cron"
+    read -ra EC_FIELDS <<< "$existing_cron"
+    if [[ ${#EC_FIELDS[@]} -eq 5 ]] \
+       && validate_cron_expression "${EC_FIELDS[0]}" "${EC_FIELDS[1]}" "${EC_FIELDS[2]}" "${EC_FIELDS[3]}" "${EC_FIELDS[4]}"; then
+      SCHEDULE="$existing_cron"
+    else
+      echo "   ⚠ Existing workflow cron '${existing_cron}' is invalid; using default schedule '${SCHEDULE}'."
+    fi
   fi
 fi
 
