@@ -136,6 +136,16 @@ assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '15 7 \* \* 2
 assert_file_contains "$REPO1/.csi.yml" "# custom comment"
 echo ""
 
+# ── Test 2c: Force re-install syncs explicit base branch changes ──────────
+echo "Test 2c: Re-install with --force syncs base branch into .csi.yml"
+
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --branch "develop" --force
+
+assert_file_contains "$REPO1/.csi.yml" 'base_branch: develop'
+assert_file_contains "$REPO1/.csi.yml" "# custom comment"
+assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '15 7 \* \* 2'"
+echo ""
+
 # ── Test 3: Install with rulesets and options ─────────────────────────────
 echo "Test 3: Install with rulesets and custom options"
 REPO2="$TEST_DIR/repo2"

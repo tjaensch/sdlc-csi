@@ -13,6 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_PATH="."
 RULESETS=""
 BRANCH="main"
+BRANCH_SET=false
 SCHEDULE="0 10 * * 1"
 SCHEDULE_SET=false
 FORCE=false
@@ -25,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     --rulesets)
       shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; shift ;;
     --branch)
-      shift; BRANCH="${1:?--branch requires a branch name}"; shift ;;
+      shift; BRANCH="${1:?--branch requires a branch name}"; BRANCH_SET=true; shift ;;
     --schedule)
       shift; SCHEDULE="${1:?--schedule requires a cron expression}"
       SCHEDULE_SET=true
@@ -113,6 +114,14 @@ echo "📦 Installing files..."
 WORKFLOW_DST="$REPO_PATH/.github/workflows/csi-run.yml"
 WORKFLOW_PREEXISTED=false
 [[ -e "$WORKFLOW_DST" ]] && WORKFLOW_PREEXISTED=true
+
+# When forcing without an explicit --schedule, preserve the existing workflow cron
+if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED" == "true" ]]; then
+  existing_cron="$(grep -m1 "[[:space:]]*-[[:space:]]*cron:" "$WORKFLOW_DST" | sed "s/.*cron:[[:space:]]*['\"]\\{0,1\\}\\(.*\\)['\"]\\{0,1\\}[[:space:]]*/\\1/" || true)"
+  if [[ -n "$existing_cron" ]]; then
+    SCHEDULE="$existing_cron"
+  fi
+fi
 
 copy_file "$SCRIPT_DIR/.github/workflows/csi-run.yml" "$WORKFLOW_DST"
 
@@ -292,6 +301,13 @@ if [[ -f "$CSI_CONFIG" ]]; then
       echo "   ✓ Updated schedule in: $CSI_CONFIG"
     else
       echo "   ⚠ Could not update schedule in: $CSI_CONFIG"
+    fi
+  fi
+  if [[ "$FORCE" == "true" && "$BRANCH_SET" == "true" ]]; then
+    if sync_existing_base_branch "$CSI_CONFIG"; then
+      echo "   ✓ Updated base branch in: $CSI_CONFIG"
+    else
+      echo "   ⚠ Could not update base branch in: $CSI_CONFIG"
     fi
   fi
 else
