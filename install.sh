@@ -13,6 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_PATH="."
 RULESETS=""
 BRANCH="main"
+BRANCH_SET=false
 SCHEDULE="0 10 * * 1"
 SCHEDULE_SET=false
 FORCE=false
@@ -25,7 +26,7 @@ while [[ $# -gt 0 ]]; do
     --rulesets)
       shift; RULESETS="${1:?--rulesets requires a comma-separated list}"; shift ;;
     --branch)
-      shift; BRANCH="${1:?--branch requires a branch name}"; shift ;;
+      shift; BRANCH="${1:?--branch requires a branch name}"; BRANCH_SET=true; shift ;;
     --schedule)
       shift; SCHEDULE="${1:?--schedule requires a cron expression}"
       SCHEDULE_SET=true
@@ -292,6 +293,13 @@ if [[ -f "$CSI_CONFIG" ]]; then
       echo "   ✓ Updated schedule in: $CSI_CONFIG"
     else
       echo "   ⚠ Could not update schedule in: $CSI_CONFIG"
+    fi
+  fi
+  if [[ "$FORCE" == "true" && "$BRANCH_SET" == "true" ]]; then
+    if sync_existing_base_branch "$CSI_CONFIG"; then
+      echo "   ✓ Updated base branch in: $CSI_CONFIG"
+    else
+      echo "   ⚠ Could not update base branch in: $CSI_CONFIG"
     fi
   fi
 else
