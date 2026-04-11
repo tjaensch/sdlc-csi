@@ -18,6 +18,75 @@ SCHEDULE="0 10 * * 1"
 SCHEDULE_SET=false
 FORCE=false
 
+validate_cron_numeric() {
+  local value="$1"
+  local min="$2"
+  local max="$3"
+
+  [[ "$value" =~ ^[0-9]+$ ]] || return 1
+  (( value >= min && value <= max ))
+}
+
+validate_cron_segment() {
+  local segment="$1"
+  local min="$2"
+  local max="$3"
+
+  if [[ "$segment" == "*" ]]; then
+    return 0
+  fi
+
+  if [[ "$segment" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+    local range_start="${BASH_REMATCH[1]}"
+    local range_end="${BASH_REMATCH[2]}"
+    validate_cron_numeric "$range_start" "$min" "$max" || return 1
+    validate_cron_numeric "$range_end" "$min" "$max" || return 1
+    (( range_start <= range_end ))
+    return $?
+  fi
+
+  validate_cron_numeric "$segment" "$min" "$max"
+}
+
+validate_cron_field() {
+  local field="$1"
+  local min="$2"
+  local max="$3"
+  local item base step extra
+  local -a items
+
+  IFS=',' read -ra items <<< "$field"
+  for item in "${items[@]}"; do
+    [[ -n "$item" ]] || return 1
+
+    base="$item"
+    step=""
+    extra=""
+    if [[ "$item" == */* ]]; then
+      IFS='/' read -r base step extra <<< "$item"
+      [[ -n "$base" && -n "$step" && -z "$extra" ]] || return 1
+      [[ "$step" =~ ^[0-9]+$ ]] || return 1
+      (( step > 0 )) || return 1
+    fi
+
+    validate_cron_segment "$base" "$min" "$max" || return 1
+  done
+}
+
+validate_cron_expression() {
+  local minute="$1"
+  local hour="$2"
+  local day="$3"
+  local month="$4"
+  local weekday="$5"
+
+  validate_cron_field "$minute" 0 59 &&
+    validate_cron_field "$hour" 0 23 &&
+    validate_cron_field "$day" 1 31 &&
+    validate_cron_field "$month" 1 12 &&
+    validate_cron_field "$weekday" 0 7
+}
+
 # ── Parse arguments ───────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -38,6 +107,10 @@ while [[ $# -gt 0 ]]; do
       read -ra CRON_FIELDS <<< "$SCHEDULE"
       if [[ ${#CRON_FIELDS[@]} -ne 5 ]]; then
         echo "Error: --schedule must have exactly 5 cron fields (minute hour day month weekday). Got ${#CRON_FIELDS[@]}." >&2
+        exit 1
+      fi
+      if ! validate_cron_expression "${CRON_FIELDS[0]}" "${CRON_FIELDS[1]}" "${CRON_FIELDS[2]}" "${CRON_FIELDS[3]}" "${CRON_FIELDS[4]}"; then
+        echo "Error: --schedule must use valid cron values within GitHub Actions ranges." >&2
         exit 1
       fi
       # Normalize whitespace (collapse multiple spaces, trim)
