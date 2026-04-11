@@ -117,7 +117,7 @@ WORKFLOW_PREEXISTED=false
 
 # When forcing without an explicit --schedule, preserve the existing workflow cron
 if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED" == "true" ]]; then
-  existing_cron="$(grep -m1 "^    - cron:" "$WORKFLOW_DST" | sed "s/.*cron: '\\(.*\\)'/\\1/" || true)"
+  existing_cron="$(grep -m1 "[[:space:]]*-[[:space:]]*cron:" "$WORKFLOW_DST" | sed "s/.*cron:[[:space:]]*['\"]\\{0,1\\}\\(.*\\)['\"]\\{0,1\\}[[:space:]]*/\\1/" || true)"
   if [[ -n "$existing_cron" ]]; then
     SCHEDULE="$existing_cron"
   fi
