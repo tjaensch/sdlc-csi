@@ -111,7 +111,7 @@ assert_file_exists "$REPO1/.github/scripts/install-copilot-cli.sh"
 assert_file_exists "$REPO1/.github/scripts/sanitize-report.sh"
 assert_file_exists "$REPO1/.github/rulesets/generic.md"
 assert_file_contains "$REPO1/.csi.yml" "Place this file in the root of your repository"
-assert_file_contains "$REPO1/.csi.yml" 'base_branch: "main"'
+assert_file_contains "$REPO1/.csi.yml" "base_branch: main"
 assert_file_contains "$REPO1/.csi.yml" "timeout: 1800"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" 'ALL_RULESETS=("generic")'
@@ -149,7 +149,7 @@ bash "$SCRIPT_DIR/install.sh" \
 
 assert_file_exists "$REPO2/.github/rulesets/python.md"
 assert_file_exists "$REPO2/.github/rulesets/javascript.md"
-assert_file_matches "$REPO2/.csi.yml" 'base_branch: "develop"'
+assert_file_matches "$REPO2/.csi.yml" 'base_branch: develop'
 assert_file_matches "$REPO2/.csi.yml" '^  - python$'
 assert_file_matches "$REPO2/.csi.yml" '^  - javascript$'
 assert_file_contains "$REPO2/.github/workflows/csi-run.yml" "cron: '0 8 \* \* \*'"

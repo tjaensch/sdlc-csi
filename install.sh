@@ -235,7 +235,7 @@ sync_existing_base_branch() {
       BEGIN { updated = 0 }
       /^base_branch:[[:space:]]*/ && updated == 0 {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
-        printf "base_branch: \"%s\"%s\n", branch, cr
+        printf "base_branch: %s%s\n", branch, cr
         updated = 1
         next
       }
