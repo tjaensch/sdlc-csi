@@ -96,7 +96,7 @@ read_config_schedule() {
   local config_schedule
   local -a config_fields
 
-  config_schedule="$(sed -nE 's/^schedule:[[:space:]]*["\x27]?([^"\x27]+)["\x27]?[[:space:]]*$/\1/p' "$config_path" | head -n 1)"
+  config_schedule="$(sed -nE "s/^schedule:[[:space:]]*[\"']?([^\"']+)[\"']?[[:space:]]*$/\1/p" "$config_path" | head -n 1)"
   [[ -n "$config_schedule" ]] || return 1
 
   read -ra config_fields <<< "$config_schedule"

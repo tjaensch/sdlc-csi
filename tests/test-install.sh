@@ -194,7 +194,7 @@ bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO1" --rulesets "bash,python" --fo
 
 assert_file_matches "$REPO1/.csi.yml" '^  - bash$'
 assert_file_matches "$REPO1/.csi.yml" '^  - python$'
-RULESET_COUNT="$(sed 's/\r$//' "$REPO1/.csi.yml" | grep -c '^  - ')"
+RULESET_COUNT="$(sed 's/\r$//' "$REPO1/.csi.yml" | sed -n '/^rulesets:/,/^[^[:space:]]/p' | grep -c '^  - ')"
 if [[ "$RULESET_COUNT" -eq 2 ]]; then
   PASS=$((PASS + 1))
 else
