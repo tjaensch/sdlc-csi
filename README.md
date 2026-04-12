@@ -34,7 +34,7 @@ Each run produces **one focused fix** to keep PRs small and reviewable. Stale PR
 
 ```bash
 # 1. Clone CSI and install into your project
-git clone https://github.com/tjaensch/csi.git
+git clone https://github.com/tjaensch/sdlc-csi.git
 bash csi/install.sh --repo-path /path/to/your-repo --rulesets "python,javascript"
 
 # 2. Add a COPILOT_TOKEN secret to your repo:

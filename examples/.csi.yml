@@ -4,7 +4,7 @@
 # Place this file in the root of your repository to configure CSI behavior.
 # All fields have sensible defaults — only override what you need.
 #
-# Documentation: https://github.com/tjaensch/csi#configuration
+# Documentation: https://github.com/tjaensch/sdlc-csi#configuration
 # ─────────────────────────────────────────────────────────────────────────────
 version: 1
 

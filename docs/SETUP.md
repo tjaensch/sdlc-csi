@@ -43,7 +43,7 @@ gh auth status    # must be authenticated
 Clone the CSI repo and run the installer:
 
 ```bash
-git clone https://github.com/tjaensch/csi.git
+git clone https://github.com/tjaensch/sdlc-csi.git
 bash csi/install.sh --repo-path /path/to/your-repo
 ```
 
