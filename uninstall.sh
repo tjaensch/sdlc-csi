@@ -42,6 +42,11 @@ done
 
 REPO_PATH="$(cd "$REPO_PATH" && pwd)"
 
+if [[ ! -d "$REPO_PATH/.git" ]]; then
+  echo "Error: '$REPO_PATH' is not a git repository." >&2
+  exit 1
+fi
+
 echo "🗑️  Removing SDLC-CSI from: $REPO_PATH"
 echo ""
 
