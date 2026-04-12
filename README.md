@@ -1,8 +1,8 @@
-# CSI — Continuous Self-Improvement
+# SDLC-CSI — Continuous Self-Improvement for the Software Development Life Cycle
 
-Automated repository health scanning and maintenance for any codebase. CSI uses an LLM-powered agent to scan your repository on a recurring schedule, identify maintenance issues across 8 categories, apply one targeted fix per run, and open a pull request — keeping your codebase healthy with minimal human effort.
+Automated repository health scanning and maintenance for any codebase. SDLC-CSI uses an LLM-powered agent to scan your repository on a recurring schedule, identify maintenance issues across 8 categories, apply one targeted fix per run, and open a pull request — keeping your codebase healthy with minimal human effort.
 
-CSI is primarily a **framework and workflow** for using AI to continuously maintain codebases. The bundled rulesets are starting-point guidance for the LLM, not deterministic rule engines — they can be customized, replaced, or extended. The value is in the approach: recurring automated scans, small reviewable PRs, and a human-in-the-loop process that improves your codebase incrementally over time.
+SDLC-CSI is primarily a **framework and workflow** for using AI to continuously maintain codebases. The bundled rulesets are starting-point guidance for the LLM, not deterministic rule engines — they can be customized, replaced, or extended. The value is in the approach: recurring automated scans, small reviewable PRs, and a human-in-the-loop process that improves your codebase incrementally over time.
 
 ## How It Works
 
@@ -11,7 +11,7 @@ Weekly Schedule (or manual trigger)
     │
     ▼
 ┌──────────────────────────────────┐
-│  CSI Workflow (.github/workflows)│
+│  SDLC-CSI Workflow (.github)     │
 │                                  │
 │  1. Read .csi.yml config         │
 │  2. Build agent prompt           │
@@ -33,9 +33,9 @@ Each run produces **one focused fix** to keep PRs small and reviewable. Stale PR
 ## Quick Start
 
 ```bash
-# 1. Clone CSI and install into your project
+# 1. Clone SDLC-CSI and install into your project
 git clone https://github.com/tjaensch/sdlc-csi.git
-bash csi/install.sh --repo-path /path/to/your-repo --rulesets "python,javascript"
+bash sdlc-csi/install.sh --repo-path /path/to/your-repo --rulesets "python,javascript"
 
 # 2. Add a COPILOT_TOKEN secret to your repo:
 #    Settings → Secrets and variables → Actions → New repository secret
@@ -71,7 +71,7 @@ gh workflow run csi-run.yml                    # scan + fix + open PR
 
 ## Configuration
 
-CSI is configured via `.csi.yml` in your repository root. The installer creates one with sensible defaults — most users won't need to change anything.
+SDLC-CSI is configured via `.csi.yml` in your repository root. The installer creates one with sensible defaults — most users won't need to change anything.
 
 ```yaml
 version: 1
@@ -126,8 +126,8 @@ rulesets:
 ## Uninstalling
 
 ```bash
-bash csi/uninstall.sh --repo-path /path/to/your-repo
-bash csi/uninstall.sh --repo-path /path/to/your-repo --remove-config  # also remove .csi.yml
+bash sdlc-csi/uninstall.sh --repo-path /path/to/your-repo
+bash sdlc-csi/uninstall.sh --repo-path /path/to/your-repo --remove-config  # also remove .csi.yml
 ```
 
 ## Security
@@ -142,30 +142,30 @@ See the [Setup Guide](docs/SETUP.md) for details on permissions and token scopin
 
 ## ⚠️ Disclaimer
 
-CSI uses LLM-generated analysis and code changes. LLM output **can be wrong, incomplete, or misleading** — including hallucinated file paths, incorrect fixes, or missed issues. All generated PRs **must be reviewed by a human** before merging. CSI is a maintenance assistant, not a substitute for developer judgment.
+SDLC-CSI uses LLM-generated analysis and code changes. LLM output **can be wrong, incomplete, or misleading** — including hallucinated file paths, incorrect fixes, or missed issues. All generated PRs **must be reviewed by a human** before merging. SDLC-CSI is a maintenance assistant, not a substitute for developer judgment.
 
 ## Known Limitations
 
 - **Recurring proposals**: The agent may re-propose fixes that were previously declined. Use `ignore_issues` in `.csi.yml` to suppress them permanently.
 - **False positives**: Not every finding is a real bug. The agent optimizes for surfacing potential issues — some will be noise. Always review PRs before merging.
-- **Self-referential confusion**: In repos where CSI maintains itself, the agent can mistake its own configuration for template or installer bugs.
-- **Review feedback loops**: Copilot reviewer comments on CSI-generated PRs can feed back into the agent's next scan, creating a cycle of churn. A `.github/copilot-instructions.md` file that scopes reviews to bugs, security, correctness, and data loss helps reduce this.
+- **Self-referential confusion**: In repos where SDLC-CSI maintains itself, the agent can mistake its own configuration for template or installer bugs.
+- **Review feedback loops**: Copilot reviewer comments on SDLC-CSI-generated PRs can feed back into the agent's next scan, creating a cycle of churn. A `.github/copilot-instructions.md` file that scopes reviews to bugs, security, correctness, and data loss helps reduce this.
 
 ## FAQ
 
-**Q: How often should I run CSI?**
+**Q: How often should I run SDLC-CSI?**
 Weekly is a good default for most repos. High-activity repos might benefit from daily scans. Update the `schedule` in `.csi.yml`, then re-run `install.sh --schedule "..." --force` or edit `.github/workflows/csi-run.yml` to sync the workflow cron.
 
-**Q: Will CSI break my code?**
-CSI applies one minimal fix per run and opens a PR for human review. It never pushes directly to your default branch. All changes are backward-compatible by design.
+**Q: Will SDLC-CSI break my code?**
+SDLC-CSI applies one minimal fix per run and opens a PR for human review. It never pushes directly to your default branch. All changes are backward-compatible by design.
 
-**Q: Can I use CSI on private repos?**
+**Q: Can I use SDLC-CSI on private repos?**
 Yes. The Copilot backend requires a PAT with appropriate access.
 
 **Q: What if the fix is wrong?**
-Close the PR. CSI will re-evaluate the issue in a future run. You can also add `custom_rules` to guide the agent's behavior, or add the issue description to `ignore_issues` in `.csi.yml` to permanently suppress it.
+Close the PR. SDLC-CSI will re-evaluate the issue in a future run. You can also add `custom_rules` to guide the agent's behavior, or add the issue description to `ignore_issues` in `.csi.yml` to permanently suppress it.
 
-**Q: CSI keeps proposing the same fix I already declined. How do I stop it?**
+**Q: SDLC-CSI keeps proposing the same fix I already declined. How do I stop it?**
 Add a substring of the issue description to `ignore_issues` in `.csi.yml`. Matching is case-insensitive. For example:
 ```yaml
 ignore_issues:

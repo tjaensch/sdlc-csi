@@ -1,6 +1,6 @@
 # Examples
 
-This directory contains example configurations for CSI.
+This directory contains example configurations for SDLC-CSI.
 
 ## `.csi.yml`
 

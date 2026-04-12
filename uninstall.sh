@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────────────────────
-# uninstall.sh — Remove CSI files from a repository
+# uninstall.sh — Remove SDLC-CSI files from a repository
 #
 # Run with --help for usage and options.
 # ────────────────────────────────────────────────────────────────────────────
@@ -18,9 +18,9 @@ while [[ $# -gt 0 ]]; do
       REMOVE_CONFIG=true; shift ;;
     --help|-h)
       cat <<HELPEOF
-Remove CSI (Continuous Self-Improvement) from a repository.
+Remove SDLC-CSI (Continuous Self-Improvement) from a repository.
 
-Removes the CSI workflow, agent, helper scripts, and bundled rulesets.
+Removes the SDLC-CSI workflow, agent, helper scripts, and bundled rulesets.
 Preserves .csi.yml unless --remove-config is specified.
 
 Usage:
@@ -42,7 +42,7 @@ done
 
 REPO_PATH="$(cd "$REPO_PATH" && pwd)"
 
-echo "🗑️  Removing CSI from: $REPO_PATH"
+echo "🗑️  Removing SDLC-CSI from: $REPO_PATH"
 echo ""
 
 remove_file() {
@@ -99,7 +99,7 @@ remove_dir_if_empty "$REPO_PATH/.github/scripts"
 remove_dir_if_empty "$REPO_PATH/.github/rulesets"
 
 echo ""
-echo "✅ CSI uninstalled."
+echo "✅ SDLC-CSI uninstalled."
 echo ""
 echo "Next steps — commit and push the removal:"
 add_paths=".github/workflows/csi-run.yml .github/agents .github/scripts .github/rulesets"
@@ -108,5 +108,5 @@ if [[ "$REMOVE_CONFIG" == "true" ]]; then
 fi
 echo "  cd $(printf '%q' "$REPO_PATH")"
 echo "  git add -A $add_paths"
-echo "  git commit -m 'chore: remove CSI automated maintenance'"
+echo "  git commit -m 'chore: remove SDLC-CSI automated maintenance'"
 echo "  git push"

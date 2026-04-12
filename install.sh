@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────────────────────
-# install.sh — Install CSI (Continuous Self-Improvement) into a repository
+# install.sh — Install SDLC-CSI (Continuous Self-Improvement) into a repository
 #
 # Run with --help for usage and options.
 # ────────────────────────────────────────────────────────────────────────────
@@ -139,9 +139,9 @@ while [[ $# -gt 0 ]]; do
       FORCE=true; shift ;;
     --help|-h)
       cat <<HELPEOF
-Install CSI (Continuous Self-Improvement) into a repository.
+Install SDLC-CSI (Continuous Self-Improvement) into a repository.
 
-Copies the CSI workflow, agent, and helper scripts into the target repo.
+Copies the SDLC-CSI workflow, agent, and helper scripts into the target repo.
 Creates a .csi.yml config file from a template if one doesn't already exist.
 
 Usage:
@@ -240,7 +240,7 @@ if [[ "$FORCE" == "true" && "$SCHEDULE_SET" == "false" && "$WORKFLOW_PREEXISTED"
   fi
 fi
 
-echo "🔧 Installing CSI into: $REPO_PATH"
+echo "🔧 Installing SDLC-CSI into: $REPO_PATH"
 echo "   Branch:   $BRANCH"
 echo "   Schedule: $SCHEDULE"
 [[ -n "$RULESETS" ]] && echo "   Rulesets: $RULESETS"
@@ -306,7 +306,7 @@ if [[ -n "$RULESETS" ]]; then
       copy_file "$SCRIPT_DIR/rulesets/${ruleset}.md" "$RULESETS_DIR/${ruleset}.md"
       VALID_RULESETS+=("$ruleset")
     else
-      echo "   ⚠ Ruleset '${ruleset}' not found in CSI distribution. Skipping."
+      echo "   ⚠ Ruleset '${ruleset}' not found in SDLC-CSI distribution. Skipping."
     fi
   done
 fi
@@ -483,7 +483,7 @@ fi
 # ── Post-install instructions ─────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ CSI installed successfully!"
+echo "✅ SDLC-CSI installed successfully!"
 echo ""
 echo "Next steps:"
 echo ""
@@ -496,7 +496,7 @@ echo "  2. Review and customize .csi.yml to match your project."
 echo ""
 echo "  3. Commit and push the installed files:"
 echo "     git add .csi.yml .github/workflows/csi-run.yml .github/agents/ .github/scripts/ .github/rulesets/"
-echo "     git commit -m 'chore: install CSI automated maintenance'"
+echo "     git commit -m 'chore: install SDLC-CSI automated maintenance'"
 echo "     git push"
 echo ""
 echo "  4. Trigger your first scan:"

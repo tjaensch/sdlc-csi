@@ -1,13 +1,13 @@
-# CSI Setup Guide — Prerequisites & Configuration
+# SDLC-CSI Setup Guide — Prerequisites & Configuration
 
-This guide walks you through everything needed to get CSI running in your repository. Follow the steps in order.
+This guide walks you through everything needed to get SDLC-CSI running in your repository. Follow the steps in order.
 
 ---
 
 ## Table of Contents
 
 1. [Prerequisites](#1-prerequisites)
-2. [Install CSI](#2-install-csi)
+2. [Install SDLC-CSI](#2-install-csi)
 3. [Configure the Copilot Token](#3-configure-the-copilot-token)
 4. [Enable PR Creation](#4-enable-pr-creation)
 5. [Optional: Enable Workflow File Edits](#5-optional-enable-workflow-file-edits)
@@ -20,7 +20,7 @@ This guide walks you through everything needed to get CSI running in your reposi
 
 ## 1. Prerequisites
 
-Before installing CSI, make sure you have:
+Before installing SDLC-CSI, make sure you have:
 
 - [ ] A **GitHub repository** (public or private)
 - [ ] **Git** installed locally
@@ -38,13 +38,13 @@ gh auth status    # must be authenticated
 
 ---
 
-## 2. Install CSI
+## 2. Install SDLC-CSI
 
-Clone the CSI repo and run the installer:
+Clone the SDLC-CSI repo and run the installer:
 
 ```bash
 git clone https://github.com/tjaensch/sdlc-csi.git
-bash csi/install.sh --repo-path /path/to/your-repo
+bash sdlc-csi/install.sh --repo-path /path/to/your-repo
 ```
 
 This copies the following into your repo:
@@ -62,12 +62,12 @@ This copies the following into your repo:
 | `--rulesets <list>` | Comma-separated rulesets to install | `generic` only |
 | `--branch <name>` | Base branch for PRs | `main` |
 | `--schedule <cron>` | Cron schedule | `0 10 * * 1` (Monday 10:00 UTC) |
-| `--force` | Overwrite existing CSI files | Off |
+| `--force` | Overwrite existing SDLC-CSI files | Off |
 
 ### Example with rulesets
 
 ```bash
-bash csi/install.sh \
+bash sdlc-csi/install.sh \
   --repo-path /path/to/your-repo \
   --rulesets "python,bash,docker" \
   --schedule "0 8 * * *"
@@ -77,7 +77,7 @@ bash csi/install.sh \
 
 ## 3. Configure the Copilot Token
 
-CSI uses GitHub Copilot to scan and apply fixes.
+SDLC-CSI uses GitHub Copilot to scan and apply fixes.
 
 **Step 1: Create a Personal Access Token (PAT)**
 
@@ -120,7 +120,7 @@ GitHub Actions requires explicit permission to create pull requests.
 
 By default, `GITHUB_TOKEN` is blocked by GitHub from pushing changes to `.github/workflows/` files. This is a platform-level security restriction that cannot be overridden by permissions.
 
-If you want CSI to be able to fix issues in workflow files:
+If you want SDLC-CSI to be able to fix issues in workflow files:
 
 **Step 1: Create a fine-grained PAT with workflow scope**
 
@@ -149,19 +149,19 @@ CSI auto-detects `CSI_PAT` at runtime. When present:
 - The agent is allowed to edit `.github/workflows/` files
 - The PAT is used for push and PR creation
 
-When absent, CSI falls back to `GITHUB_TOKEN` with workflow files excluded. The workflow emits a notice indicating which mode is active.
+When absent, SDLC-CSI falls back to `GITHUB_TOKEN` with workflow files excluded. The workflow emits a notice indicating which mode is active.
 
 ---
 
 ## 6. Optional: Enable Auto-Delete of Merged Branches
 
-CSI creates a branch for each PR (e.g., `csi/fix-2026-04-08`). To clean them up automatically:
+SDLC-CSI creates a branch for each PR (e.g., `csi/fix-2026-04-08`). To clean them up automatically:
 
 1. Go to your repo → **Settings** → **General**
 2. Scroll to the **Pull Requests** section
 3. Check **"Automatically delete head branches"**
 
-This applies to all merged PRs, not just CSI.
+This applies to all merged PRs, not just SDLC-CSI.
 
 ---
 
@@ -296,12 +296,12 @@ This will scan, apply one fix, and open a PR.
 
 ### "No files were changed. Repository is in good health."
 
-→ CSI found no issues to fix. This is expected for well-maintained repos. Check the job summary for the full scan report.
+→ SDLC-CSI found no issues to fix. This is expected for well-maintained repos. Check the job summary for the full scan report.
 
 ### Scan produces empty output or times out
 
 Possible causes:
-- The model may be unavailable. CSI tries models in order from its preference list.
+- The model may be unavailable. SDLC-CSI tries models in order from its preference list.
 - The timeout may be too short for large repos. Increase `timeout` in `.csi.yml`.
 - Check the workflow logs for specific error messages.
 

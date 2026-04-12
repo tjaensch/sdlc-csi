@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────────────────────
-# test-install.sh — Validate the CSI installer and uninstaller
+# test-install.sh — Validate the SDLC-CSI installer and uninstaller
 # ────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
