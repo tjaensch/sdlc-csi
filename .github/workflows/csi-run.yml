@@ -74,6 +74,7 @@ jobs:
             echo "categories=dry_violations,documentation_drift,tooling_currency,dead_code,code_quality,security_hygiene,dependency_health,config_consistency" >> "$GITHUB_OUTPUT"
             echo "exclude_paths=vendor/**,node_modules/**,dist/**,.git/**" >> "$GITHUB_OUTPUT"
             echo "custom_rules=" >> "$GITHUB_OUTPUT"
+            echo "ignore_issues=" >> "$GITHUB_OUTPUT"
             echo "has_config=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -103,6 +104,9 @@ jobs:
           # Read custom rules
           CUSTOM_RULES=$(yq -r '(.custom_rules // []) | join("\u001f")' "$CONFIG_FILE")
 
+          # Read ignored issue descriptions
+          IGNORE_ISSUES=$(yq -r '(.ignore_issues // []) | join("\u001f")' "$CONFIG_FILE")
+
           # Validate timeout
           if [[ ! "$TIMEOUT" =~ ^[0-9]+$ ]] || (( TIMEOUT <= 0 )); then
             echo "::error::Invalid timeout '$TIMEOUT' in .csi.yml. Must be a positive integer."
@@ -117,6 +121,7 @@ jobs:
           echo "categories=$CATEGORIES" >> "$GITHUB_OUTPUT"
           echo "exclude_paths=$EXCLUDE_PATHS" >> "$GITHUB_OUTPUT"
           echo "custom_rules=$CUSTOM_RULES" >> "$GITHUB_OUTPUT"
+          echo "ignore_issues=$IGNORE_ISSUES" >> "$GITHUB_OUTPUT"
 
       # ── Detect token capabilities ──────────────────────────────────
       - name: Detect push token
@@ -212,6 +217,7 @@ jobs:
           RULESETS: ${{ steps.config.outputs.rulesets }}
           EXCLUDE_PATHS: ${{ steps.config.outputs.exclude_paths }}
           CUSTOM_RULES: ${{ steps.config.outputs.custom_rules }}
+          IGNORE_ISSUES: ${{ steps.config.outputs.ignore_issues }}
         run: |
           set -euo pipefail
 
@@ -294,6 +300,19 @@ jobs:
             for rule in "${RULES[@]}"; do
               rule="$(echo "$rule" | xargs)"
               [[ -n "$rule" ]] && echo "- $rule" >> "$PROMPT_FILE"
+            done
+          fi
+
+          # Append ignored issue descriptions so the agent can filter them.
+          if [[ -n "$IGNORE_ISSUES" ]]; then
+            echo "" >> "$PROMPT_FILE"
+            echo "--- IGNORED ISSUES ---" >> "$PROMPT_FILE"
+            echo "The following issue-description substrings must be skipped (case-insensitive match):" >> "$PROMPT_FILE"
+            IFS=$'\x1f' read -ra IGNORED <<< "$IGNORE_ISSUES"
+            for issue in "${IGNORED[@]}"; do
+              issue="${issue#"${issue%%[![:space:]]*}"}"
+              issue="${issue%"${issue##*[![:space:]]}"}"
+              [[ -n "$issue" ]] && echo "- $issue" >> "$PROMPT_FILE"
             done
           fi
 
