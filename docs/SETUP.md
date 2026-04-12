@@ -7,7 +7,7 @@ This guide walks you through everything needed to get SDLC-CSI running in your r
 ## Table of Contents
 
 1. [Prerequisites](#1-prerequisites)
-2. [Install SDLC-CSI](#2-install-csi)
+2. [Install SDLC-CSI](#2-install-sdlc-csi)
 3. [Configure the Copilot Token](#3-configure-the-copilot-token)
 4. [Enable PR Creation](#4-enable-pr-creation)
 5. [Optional: Enable Workflow File Edits](#5-optional-enable-workflow-file-edits)
