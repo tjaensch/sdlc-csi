@@ -310,7 +310,8 @@ jobs:
             echo "The following issue-description substrings must be skipped (case-insensitive match):" >> "$PROMPT_FILE"
             IFS=$'\x1f' read -ra IGNORED <<< "$IGNORE_ISSUES"
             for issue in "${IGNORED[@]}"; do
-              issue="$(echo "$issue" | xargs)"
+              issue="${issue#"${issue%%[![:space:]]*}"}"
+              issue="${issue%"${issue##*[![:space:]]}"}"
               [[ -n "$issue" ]] && echo "- $issue" >> "$PROMPT_FILE"
             done
           fi
