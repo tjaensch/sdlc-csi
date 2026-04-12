@@ -53,6 +53,7 @@ scan:
 
 rulesets:
   - javascript
+  - typescript
 
 custom_rules:
   - "All React components must be functional, not class-based"
