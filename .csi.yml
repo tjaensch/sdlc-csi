@@ -91,3 +91,4 @@ ignore_issues:
   - "empty rulesets"
   - "stale rulesets when no valid"
   - "false-negative regex"
+  - "examples/.csi.yml"
