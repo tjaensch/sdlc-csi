@@ -2,6 +2,8 @@
 
 Automated repository health scanning and maintenance for any codebase. CSI uses an LLM-powered agent to scan your repository on a recurring schedule, identify maintenance issues across 8 categories, apply one targeted fix per run, and open a pull request — keeping your codebase healthy with minimal human effort.
 
+CSI is primarily a **framework and workflow** for using AI to continuously maintain codebases. The bundled rulesets are starting-point guidance for the LLM, not deterministic rule engines — they can be customized, replaced, or extended. The value is in the approach: recurring automated scans, small reviewable PRs, and a human-in-the-loop process that improves your codebase incrementally over time.
+
 ## How It Works
 
 ```
