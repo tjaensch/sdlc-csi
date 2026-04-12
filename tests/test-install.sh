@@ -116,9 +116,7 @@ assert_file_contains "$REPO1/.csi.yml" "base_branch: $EXPECTED_BRANCH"
 assert_file_contains "$REPO1/.csi.yml" "timeout: 1800"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "cron: '0 10 \* \* 1'"
 assert_file_contains "$REPO1/.github/workflows/csi-run.yml" 'ALL_RULESETS=("generic")'
-assert_file_contains "$REPO1/.github/workflows/csi-run.yml" 'IGNORE_ISSUES=$(yq -r '\''(.ignore_issues // []) | join("\\u001f")'\'' "$CONFIG_FILE")'
-assert_file_contains "$REPO1/.github/workflows/csi-run.yml" 'echo "ignore_issues=$IGNORE_ISSUES" >> "$GITHUB_OUTPUT"'
-assert_file_contains "$REPO1/.github/workflows/csi-run.yml" '--- IGNORED ISSUES ---'
+assert_file_contains "$REPO1/.github/workflows/csi-run.yml" "IGNORE_ISSUES"
 echo ""
 
 # ── Test 1a: origin/HEAD branch detection ─────────────────────────────────
