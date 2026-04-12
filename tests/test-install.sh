@@ -43,7 +43,9 @@ assert_file_contains() {
 
 assert_file_matches() {
   # Regex assertion that tolerates optional \r (CRLF endings)
-  if sed 's/\r$//' "$1" | grep -qE -- "$2" 2>/dev/null; then
+  local content
+  content="$(tr -d '\r' < "$1")"
+  if grep -qE -- "$2" <<< "$content" 2>/dev/null; then
     PASS=$((PASS + 1))
   else
     FAIL=$((FAIL + 1))
