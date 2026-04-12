@@ -324,8 +324,18 @@ assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "# Usage:"
 assert_output_not_contains "$UNINSTALL_HELP_OUTPUT" "set -euo pipefail"
 echo ""
 
-# ── Test 10: Sanitize modern API keys and workflow PATs ───────────────────
-echo "Test 10: Sanitize modern API keys and workflow PATs"
+# ── Test 10: Uninstall should reject non-git directory ─────────────────────
+echo "Test 10: Reject uninstall from non-git directory"
+if bash "$SCRIPT_DIR/uninstall.sh" --repo-path "$NON_GIT" 2>/dev/null; then
+  FAIL=$((FAIL + 1))
+  echo "  FAIL: Should have rejected non-git directory"
+else
+  PASS=$((PASS + 1))
+fi
+echo ""
+
+# ── Test 11: Sanitize modern API keys and workflow PATs ───────────────────
+echo "Test 11: Sanitize modern API keys and workflow PATs"
 SANITIZE_INPUT="$TEST_DIR/sanitize-input.txt"
 SANITIZE_OUTPUT="$TEST_DIR/sanitize-output.txt"
 cat > "$SANITIZE_INPUT" <<'EOF'
@@ -340,8 +350,8 @@ assert_output_not_contains "$SANITIZED_CONTENT" "sk-proj-abcdefghijklmnopqrstuvw
 assert_output_not_contains "$SANITIZED_CONTENT" "CSI_PAT=github_pat_abcdefghijklmnopqrstuvwxyz1234567890"
 echo ""
 
-# ── Test 11: Invalid schedule characters rejected ─────────────────────────
-echo "Test 11: Reject invalid --schedule characters"
+# ── Test 12: Invalid schedule characters rejected ─────────────────────────
+echo "Test 12: Reject invalid --schedule characters"
 REPO_SCHED="$TEST_DIR/repo_sched"
 mkdir -p "$REPO_SCHED" && cd "$REPO_SCHED" && git init -q
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "'; echo pwned'" 2>/dev/null; then
@@ -352,8 +362,8 @@ else
 fi
 echo ""
 
-# ── Test 12: Reject schedule with wrong number of fields ──────────────────
-echo "Test 12: Reject --schedule with wrong field count"
+# ── Test 13: Reject schedule with wrong number of fields ──────────────────
+echo "Test 13: Reject --schedule with wrong field count"
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "0 8 *" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected schedule with 3 fields"
@@ -368,8 +378,8 @@ else
 fi
 echo ""
 
-# ── Test 13: Reject schedule fields outside supported cron ranges ─────────
-echo "Test 13: Reject out-of-range cron fields"
+# ── Test 14: Reject schedule fields outside supported cron ranges ─────────
+echo "Test 14: Reject out-of-range cron fields"
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "60 24 32 13 8" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected schedule with out-of-range values"
@@ -378,8 +388,8 @@ else
 fi
 echo ""
 
-# ── Test 14: Reject invalid cron step values ──────────────────────────────
-echo "Test 14: Reject invalid cron step values"
+# ── Test 15: Reject invalid cron step values ──────────────────────────────
+echo "Test 15: Reject invalid cron step values"
 if bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_SCHED" --schedule "*/0 * * * *" 2>/dev/null; then
   FAIL=$((FAIL + 1))
   echo "  FAIL: Should have rejected schedule with zero step"
