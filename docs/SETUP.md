@@ -60,7 +60,7 @@ This copies the following into your repo:
 |------|-------------|---------|
 | `--repo-path <path>` | Target repository root | Current directory |
 | `--rulesets <list>` | Comma-separated rulesets to install | `generic` only |
-| `--branch <name>` | Base branch for PRs | `main` |
+| `--branch <name>` | Base branch for PRs | Auto-detected from repo |
 | `--schedule <cron>` | Cron schedule | `0 10 * * 1` (Monday 10:00 UTC) |
 | `--force` | Overwrite existing SDLC-CSI files | Off |
 
