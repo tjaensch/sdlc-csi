@@ -20,7 +20,7 @@ Every module under `modules/` should have a `meta.yml` describing inputs, output
 `publishDir` should reference `params.outdir` rather than hardcoded paths.
 
 ### NF-006: Channel operators should use modern syntax
-Prefer `.map{}`, `.filter{}`, `.collect()` over deprecated operators like `into`, `set`, `subscribe`.
+Prefer `.map{}`, `.filter{}`, `.collect()` over legacy operators like `into` and `subscribe`. Note: `.set{}` is valid DSL2 syntax for naming channels.
 
 ### NF-007: `modules.json` should track installed modules
 All nf-core modules should be registered in `modules.json` for reproducibility and update tracking.

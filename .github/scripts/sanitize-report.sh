@@ -21,5 +21,5 @@ sed -E \
   -e 's/(^|[^[:alnum:]_])(sk-[A-Za-z0-9_-]{20,})([^[:alnum:]_]|$)/\1[REDACTED_TOKEN]\3/g' \
   -e 's/(authorization:)[[:space:]]*(Bearer|token|Basic)[[:space:]]+[^[:space:]]+/\1 \2 [REDACTED]/gI' \
   -e 's/(x-access-token:)[[:space:]]*[^[:space:]]+/\1 [REDACTED]/gI' \
-  -e 's/(OPENAI_API_KEY|COPILOT_TOKEN|CSI_PAT|GH_TOKEN|GITHUB_TOKEN)=[^[:space:]"'"'"']+/\1=[REDACTED]/g' \
+  -e 's/(OPENAI_API_KEY|COPILOT_TOKEN|COPILOT_PAT|CSI_PAT|GH_TOKEN|GITHUB_TOKEN)=[^[:space:]"'"'"']+/\1=[REDACTED]/g' \
   "$INPUT" > "$OUTPUT"

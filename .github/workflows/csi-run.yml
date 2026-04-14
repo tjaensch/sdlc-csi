@@ -113,6 +113,12 @@ jobs:
             exit 1
           fi
 
+          # Validate stale_pr_days
+          if [[ ! "$STALE_DAYS" =~ ^[0-9]+$ ]] || (( STALE_DAYS <= 0 )); then
+            echo "::warning::Invalid stale_pr_days '$STALE_DAYS' in .csi.yml. Falling back to 3."
+            STALE_DAYS=3
+          fi
+
           echo "base_branch=$BASE_BRANCH" >> "$GITHUB_OUTPUT"
           echo "stale_pr_days=$STALE_DAYS" >> "$GITHUB_OUTPUT"
           echo "model=$MODEL" >> "$GITHUB_OUTPUT"
