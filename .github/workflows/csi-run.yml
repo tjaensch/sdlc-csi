@@ -749,6 +749,10 @@ jobs:
           else
             STALE_DAYS=3
           fi
+          if [[ ! "$STALE_DAYS" =~ ^[0-9]+$ ]] || (( STALE_DAYS <= 0 )); then
+            echo "::warning::Invalid stale_pr_days '$STALE_DAYS' in .csi.yml. Falling back to 3."
+            STALE_DAYS=3
+          fi
           echo "stale_days=$STALE_DAYS" >> "$GITHUB_OUTPUT"
 
       - name: Close stale CSI PRs
