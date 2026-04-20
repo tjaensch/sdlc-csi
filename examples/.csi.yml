@@ -11,7 +11,8 @@ version: 1
 # ── Schedule ──────────────────────────────────────────────────────────────
 # Cron expression for automated scans (UTC). Default: weekly Monday 10:00 UTC.
 # This value is written into .github/workflows/csi-run.yml during install.
-# To change it later, re-run install.sh with --schedule and --force, or edit the workflow cron directly.
+# To change it later, re-run install.sh with --schedule and --force, or edit
+# .github/workflows/csi-run.yml cron directly.
 schedule: "0 10 * * 1"
 
 # ── Branch settings ───────────────────────────────────────────────────────
@@ -86,6 +87,8 @@ custom_rules: []
 # Suppress specific findings that have been reviewed and intentionally declined.
 # Each entry is a substring matched case-insensitively against issue descriptions.
 # Matching issues will not appear in "Applied Fix" or "Remaining Issues".
-ignore_issues: []
-  # - "empty rulesets"
-  # - "stale rulesets when no valid"
+ignore_issues:
+  - "empty rulesets"
+  - "stale rulesets when no valid"
+  - "false-negative regex"
+  - "examples/.csi.yml"
