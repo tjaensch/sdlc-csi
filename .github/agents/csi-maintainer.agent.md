@@ -65,6 +65,7 @@ These constraints override all other behavior:
 8. **DO NOT** update pinned versions without verifying the new version exists (use `githubRepo` to check releases).
 9. **Keep all changes backward-compatible** — existing workflows, scripts, and builds must continue to work after the fix.
 10. **DO NOT** treat unresolved Copilot PR review comments as issues to fix. Copilot review suggestions are advisory — they may have been considered and intentionally declined by the maintainer. Only flag an issue if you independently identify it through your own scan, not because a reviewer commented on it.
+11. **Scope discipline**: After applying your fix, run `git status --short` and `git diff --stat`. If any file appears that you did not intentionally edit — for example files modified by line-ending normalization (`.gitattributes`), editor auto-format, or trailing-whitespace tooling — revert it with `git checkout -- <file>` before finishing. Your "What Changed" list must exactly match `git diff --name-only`. Unintentional churn in unrelated files will cause reviewers to reject the PR.
 
 ---
 
