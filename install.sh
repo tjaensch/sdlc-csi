@@ -392,14 +392,19 @@ sync_existing_rulesets() {
     if ! RULESETS_YAML_ENV="$rulesets_yaml" awk '
       BEGIN {
         updated = 0
-        count = split(ENVIRON["RULESETS_YAML_ENV"], lines, "\n")
+        raw = ENVIRON["RULESETS_YAML_ENV"]
+        count = (raw == "") ? 0 : split(raw, lines, "\n")
         in_rulesets = 0
       }
       /^rulesets:[[:space:]]*/ && updated == 0 {
         cr = (substr($0, length($0)) == "\r") ? "\r" : ""
-        printf "rulesets:%s\n", cr
-        for (i = 1; i <= count; i++) {
-          printf "%s%s\n", lines[i], cr
+        if (count == 0) {
+          printf "rulesets: []%s\n", cr
+        } else {
+          printf "rulesets:%s\n", cr
+          for (i = 1; i <= count; i++) {
+            printf "%s%s\n", lines[i], cr
+          }
         }
         updated = 1
         in_rulesets = 1
@@ -437,7 +442,7 @@ if [[ -f "$CSI_CONFIG" ]]; then
       echo "   ⚠ Could not update base branch in: $CSI_CONFIG"
     fi
   fi
-  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" && ${#VALID_RULESETS[@]} -gt 0 ]]; then
+  if [[ "$FORCE" == "true" && "$RULESETS_SET" == "true" ]]; then
     RULESETS_YAML=""
     for ruleset in "${VALID_RULESETS[@]}"; do
       RULESETS_YAML="${RULESETS_YAML:+${RULESETS_YAML}$'\n'}  - ${ruleset}"

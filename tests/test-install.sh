@@ -266,6 +266,16 @@ assert_file_matches "$REPO3/.csi.yml" '^  - python$'
 assert_file_not_contains "$REPO3/.csi.yml" "not-a-real-ruleset"
 echo ""
 
+# ── Test 4b: Force re-install clears invalidated rulesets from config ─────
+echo "Test 4b: Re-install with only invalid rulesets clears stale config entries"
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO3" --rulesets "not-a-real-ruleset" --force
+
+RULESETS_BLOCK="$(sed 's/\r$//' "$REPO3/.csi.yml" | sed -n '/^rulesets:/,/^custom_rules:/p')"
+assert_output_contains "$RULESETS_BLOCK" 'rulesets: []'
+assert_output_not_contains "$RULESETS_BLOCK" '  - python'
+assert_output_not_contains "$RULESETS_BLOCK" 'not-a-real-ruleset'
+echo ""
+
 # ── Test 5: Uninstall preserves config ────────────────────────────────────
 echo "Test 5: Uninstall preserves .csi.yml"
 
