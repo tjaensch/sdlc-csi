@@ -270,7 +270,7 @@ echo ""
 echo "Test 4b: Re-install with only invalid rulesets clears stale config entries"
 bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO3" --rulesets "not-a-real-ruleset" --force
 
-RULESETS_BLOCK="$(sed 's/\r$//' "$REPO3/.csi.yml" | sed -n '/^rulesets:/,/^custom_rules:/p')"
+RULESETS_BLOCK="$(sed 's/\r$//' "$REPO3/.csi.yml" | sed -n '/^rulesets:/,/^[^[:space:]]/p' | sed '$d')"
 assert_output_contains "$RULESETS_BLOCK" 'rulesets: []'
 assert_output_not_contains "$RULESETS_BLOCK" '  - python'
 assert_output_not_contains "$RULESETS_BLOCK" 'not-a-real-ruleset'
