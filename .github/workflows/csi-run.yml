@@ -7,7 +7,7 @@ run-name: "CSI — ${{ inputs.dry_run == true && '🔍 Dry Run' || '🔧 Scan' }
 # Users can override per-repo via .csi.yml → model or the workflow dispatch input.
 # Update this list when newer tool-capable models become available.
 env:
-  CSI_MODEL_PREFERENCE: "gpt-5.4,claude-sonnet-4,gpt-4o"
+  CSI_MODEL_PREFERENCE: "gpt-5.5,claude-sonnet-4,gpt-4o"
 
 on:
   schedule:

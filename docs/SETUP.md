@@ -185,7 +185,7 @@ stale_pr_days: 3
 
 # Override the model. Leave empty to auto-select from the
 # workflow's preference list (tries models in order until one works).
-# model: "gpt-5.4"
+# model: "gpt-5.5"
 
 # Scan timeout in seconds
 timeout: 1800
