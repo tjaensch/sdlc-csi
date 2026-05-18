@@ -352,13 +352,18 @@ SANITIZE_OUTPUT="$TEST_DIR/sanitize-output.txt"
 cat > "$SANITIZE_INPUT" <<'EOF'
 Token seen: sk-proj-abcdefghijklmnopqrstuvwxyz1234567890
 CSI_PAT=github_pat_abcdefghijklmnopqrstuvwxyz1234567890
+COPILOT_TOKEN: "supersecretvalue1234567890"
+GH_TOKEN="supersecretvalue1234567890"
 EOF
 bash "$SCRIPT_DIR/.github/scripts/sanitize-report.sh" "$SANITIZE_INPUT" "$SANITIZE_OUTPUT"
 SANITIZED_CONTENT="$(cat "$SANITIZE_OUTPUT")"
 assert_output_contains "$SANITIZED_CONTENT" "[REDACTED_TOKEN]"
 assert_output_contains "$SANITIZED_CONTENT" "CSI_PAT=[REDACTED]"
+assert_output_contains "$SANITIZED_CONTENT" "COPILOT_TOKEN: [REDACTED]"
+assert_output_contains "$SANITIZED_CONTENT" "GH_TOKEN=[REDACTED]"
 assert_output_not_contains "$SANITIZED_CONTENT" "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890"
 assert_output_not_contains "$SANITIZED_CONTENT" "CSI_PAT=github_pat_abcdefghijklmnopqrstuvwxyz1234567890"
+assert_output_not_contains "$SANITIZED_CONTENT" "supersecretvalue1234567890"
 echo ""
 
 # ── Test 12: Invalid schedule characters rejected ─────────────────────────
