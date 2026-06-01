@@ -17,6 +17,9 @@ env/
 !.env.*.template
 *.pem
 *.key
+credentials.*
+!credentials.example.*
+!credentials.template.*
 
 # IDE
 .idea/
