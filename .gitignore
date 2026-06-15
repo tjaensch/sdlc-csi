@@ -41,5 +41,3 @@ build/
 htmlcov/
 .pytest_cache/
 
-# Installer-generated rulesets (source of truth is rulesets/)
-.github/rulesets/
