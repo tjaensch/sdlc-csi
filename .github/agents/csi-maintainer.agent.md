@@ -135,7 +135,7 @@ These constraints override all other behavior:
 ├─ codebase: Read CONTRIBUTING.md (if exists) and compare to actual dev workflow
 │   └─ DETECT: Outdated setup instructions, missing steps, wrong commands
 │
-├─ runCommands: `grep -rn 'TODO\|FIXME\|HACK\|XXX\|DEPRECATED' --include='*.yml' --include='*.md' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' . 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v .git/`
+├─ runCommands: `grep -rnE '(^|[^[:alnum:]_])(TODO|FIXME|HACK|XXX|DEPRECATED)([^[:alnum:]_]|$)' --include='*.yml' --include='*.md' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' . 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v .git/`
 │   └─ CAPTURE: Outstanding TODO/FIXME markers that may indicate stale intent
 │
 └─ OUTPUT: List of documentation inconsistencies with specific file:line references
