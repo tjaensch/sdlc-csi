@@ -712,13 +712,21 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # ── Upload report artifact ───────────────────────────────────────
-      - name: Upload CSI report
+      # ── Upload sanitized report artifact ─────────────────────────────
+      - name: Sanitize CSI report artifact
         if: always() && steps.scan.outputs.report_file != ''
+        id: sanitize_report
+        run: |
+          SANITIZED_REPORT="${RUNNER_TEMP}/csi-report-sanitized-${{ steps.branch.outputs.date }}.md"
+          bash "${{ github.workspace }}/.github/scripts/sanitize-report.sh" "${{ steps.scan.outputs.report_file }}" "$SANITIZED_REPORT"
+          echo "report_file=$SANITIZED_REPORT" >> "$GITHUB_OUTPUT"
+
+      - name: Upload CSI report
+        if: always() && steps.sanitize_report.outputs.report_file != ''
         uses: actions/upload-artifact@v7
         with:
           name: csi-report-${{ steps.branch.outputs.date }}
-          path: ${{ steps.scan.outputs.report_file }}
+          path: ${{ steps.sanitize_report.outputs.report_file }}
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────────
