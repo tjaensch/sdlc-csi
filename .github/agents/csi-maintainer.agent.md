@@ -92,16 +92,16 @@ These constraints override all other behavior:
 ┌─ runCommands: `find . -maxdepth 1 -type f | sort` (root files)
 │   └─ CAPTURE: Project root files (README, LICENSE, configs, lockfiles)
 │
-├─ runCommands: `find . -type f -name '*.yml' -o -name '*.yaml' | grep -v node_modules | grep -v vendor | grep -v .git | sort`
+├─ runCommands: `find . -type f -name '*.yml' -o -name '*.yaml' | grep -v node_modules | grep -v vendor | grep -v dist | grep -v .git | sort`
 │   └─ CAPTURE: All YAML configuration files
 │
 ├─ runCommands: `find .github/workflows/ -name '*.yml' -type f 2>/dev/null | sort`
 │   └─ CAPTURE: All workflow files
 │
-├─ runCommands: `find . -maxdepth 3 -type f \( -name '*.py' -o -name '*.js' -o -name '*.ts' -o -name '*.cs' -o -name '*.go' -o -name '*.rs' -o -name '*.java' -o -name '*.rb' -o -name '*.sh' \) 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v .git | head -200`
+├─ runCommands: `find . -maxdepth 3 -type f \( -name '*.py' -o -name '*.js' -o -name '*.ts' -o -name '*.cs' -o -name '*.go' -o -name '*.rs' -o -name '*.java' -o -name '*.rb' -o -name '*.sh' \) 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v dist | grep -v .git | head -200`
 │   └─ CAPTURE: Source files (first 200 to stay within scan limits)
 │
-├─ runCommands: `find . -maxdepth 2 \( -name 'package.json' -o -name 'requirements*.txt' -o -name 'Pipfile' -o -name 'pyproject.toml' -o -name '*.csproj' -o -name 'go.mod' -o -name 'Cargo.toml' -o -name 'Gemfile' -o -name 'pom.xml' -o -name 'build.gradle' \) 2>/dev/null | grep -v node_modules | sort`
+├─ runCommands: `find . -maxdepth 2 \( -name 'package.json' -o -name 'requirements*.txt' -o -name 'Pipfile' -o -name 'pyproject.toml' -o -name '*.csproj' -o -name 'go.mod' -o -name 'Cargo.toml' -o -name 'Gemfile' -o -name 'pom.xml' -o -name 'build.gradle' \) 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v dist | sort`
 │   └─ CAPTURE: Dependency manifest files
 │
 ├─ codebase: Read README.md if it exists
@@ -135,7 +135,7 @@ These constraints override all other behavior:
 ├─ codebase: Read CONTRIBUTING.md (if exists) and compare to actual dev workflow
 │   └─ DETECT: Outdated setup instructions, missing steps, wrong commands
 │
-├─ runCommands: `grep -rn 'TODO\|FIXME\|HACK\|XXX\|DEPRECATED' --include='*.yml' --include='*.md' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' . 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v .git/`
+├─ runCommands: `grep -rn 'TODO\|FIXME\|HACK\|XXX\|DEPRECATED' --include='*.yml' --include='*.md' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' . 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v dist | grep -v .git/`
 │   └─ CAPTURE: Outstanding TODO/FIXME markers that may indicate stale intent
 │
 └─ OUTPUT: List of documentation inconsistencies with specific file:line references
@@ -192,7 +192,7 @@ These constraints override all other behavior:
 ### PHASE 7: SCAN — SECURITY HYGIENE
 *Skip if `scan.categories.security_hygiene` is false*
 ```
-┌─ runCommands: `grep -rn --include='*.py' --include='*.js' --include='*.ts' --include='*.cs' --include='*.go' --include='*.yml' --include='*.yaml' --include='*.json' --include='*.env*' -iE '(password|secret|api[_-]?key|token|private[_-]?key)\s*[:=]\s*["\x27][^"\x27]{8,}' . 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v .git/ | grep -v '\.example' | grep -v 'REDACTED' | head -50`
+┌─ runCommands: `grep -rn --include='*.py' --include='*.js' --include='*.ts' --include='*.cs' --include='*.go' --include='*.yml' --include='*.yaml' --include='*.json' --include='*.env*' -iE '(password|secret|api[_-]?key|token|private[_-]?key)\s*[:=]\s*["\x27][^"\x27]{8,}' . 2>/dev/null | grep -v node_modules | grep -v vendor | grep -v dist | grep -v .git/ | grep -v '\.example' | grep -v 'REDACTED' | head -50`
 │   └─ DETECT: Hardcoded secrets, API keys, or tokens in source code
 │
 ├─ runCommands: `find . -name '.env' -not -path '*/node_modules/*' -not -path '*/.git/*' -not -name '*.example' -not -name '*.template' 2>/dev/null`
