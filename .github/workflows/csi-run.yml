@@ -63,23 +63,35 @@ jobs:
         run: |
           set -euo pipefail
 
+          write_output() {
+            local name="$1"
+            local value="$2"
+            local delimiter="csi_output_${name}_$(uuidgen)"
+
+            {
+              printf '%s<<%s\n' "$name" "$delimiter"
+              printf '%s\n' "$value"
+              printf '%s\n' "$delimiter"
+            } >> "$GITHUB_OUTPUT"
+          }
+
           CONFIG_FILE=".csi.yml"
           if [[ ! -f "$CONFIG_FILE" ]]; then
             echo "::notice::No .csi.yml found — using defaults."
-            echo "base_branch=main" >> "$GITHUB_OUTPUT"
-            echo "stale_pr_days=3" >> "$GITHUB_OUTPUT"
-            echo "model=" >> "$GITHUB_OUTPUT"
-            echo "timeout=1800" >> "$GITHUB_OUTPUT"
-            echo "rulesets=" >> "$GITHUB_OUTPUT"
-            echo "categories=dry_violations,documentation_drift,tooling_currency,dead_code,code_quality,security_hygiene,dependency_health,config_consistency" >> "$GITHUB_OUTPUT"
-            echo "exclude_paths=vendor/**,node_modules/**,dist/**,.git/**" >> "$GITHUB_OUTPUT"
-            echo "custom_rules=" >> "$GITHUB_OUTPUT"
-            echo "ignore_issues=" >> "$GITHUB_OUTPUT"
-            echo "has_config=false" >> "$GITHUB_OUTPUT"
+            write_output "base_branch" "main"
+            write_output "stale_pr_days" "3"
+            write_output "model" ""
+            write_output "timeout" "1800"
+            write_output "rulesets" ""
+            write_output "categories" "dry_violations,documentation_drift,tooling_currency,dead_code,code_quality,security_hygiene,dependency_health,config_consistency"
+            write_output "exclude_paths" "vendor/**,node_modules/**,dist/**,.git/**"
+            write_output "custom_rules" ""
+            write_output "ignore_issues" ""
+            write_output "has_config" "false"
             exit 0
           fi
 
-          echo "has_config=true" >> "$GITHUB_OUTPUT"
+          write_output "has_config" "true"
 
           # Parse config values with yq (pre-installed on ubuntu-latest)
           # Each field falls back to a sensible default
@@ -119,15 +131,15 @@ jobs:
             STALE_DAYS=3
           fi
 
-          echo "base_branch=$BASE_BRANCH" >> "$GITHUB_OUTPUT"
-          echo "stale_pr_days=$STALE_DAYS" >> "$GITHUB_OUTPUT"
-          echo "model=$MODEL" >> "$GITHUB_OUTPUT"
-          echo "timeout=$TIMEOUT" >> "$GITHUB_OUTPUT"
-          echo "rulesets=$RULESETS" >> "$GITHUB_OUTPUT"
-          echo "categories=$CATEGORIES" >> "$GITHUB_OUTPUT"
-          echo "exclude_paths=$EXCLUDE_PATHS" >> "$GITHUB_OUTPUT"
-          echo "custom_rules=$CUSTOM_RULES" >> "$GITHUB_OUTPUT"
-          echo "ignore_issues=$IGNORE_ISSUES" >> "$GITHUB_OUTPUT"
+          write_output "base_branch" "$BASE_BRANCH"
+          write_output "stale_pr_days" "$STALE_DAYS"
+          write_output "model" "$MODEL"
+          write_output "timeout" "$TIMEOUT"
+          write_output "rulesets" "$RULESETS"
+          write_output "categories" "$CATEGORIES"
+          write_output "exclude_paths" "$EXCLUDE_PATHS"
+          write_output "custom_rules" "$CUSTOM_RULES"
+          write_output "ignore_issues" "$IGNORE_ISSUES"
 
       # ── Detect token capabilities ──────────────────────────────────
       - name: Detect push token
