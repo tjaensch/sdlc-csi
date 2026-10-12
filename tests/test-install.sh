@@ -412,6 +412,41 @@ else
 fi
 echo ""
 
+# ── Test 16: Uninstall preserves pre-existing files ────────────────────────
+echo "Test 16: Uninstall preserves pre-existing files"
+REPO_PREEXISTING="$TEST_DIR/repo_preexisting"
+mkdir -p \
+  "$REPO_PREEXISTING/.github/workflows" \
+  "$REPO_PREEXISTING/.github/agents" \
+  "$REPO_PREEXISTING/.github/scripts" \
+  "$REPO_PREEXISTING/.github/rulesets"
+cd "$REPO_PREEXISTING" && git init -q
+cat > "$REPO_PREEXISTING/.github/workflows/csi-run.yml" <<'EOF'
+name: User workflow
+on: workflow_dispatch
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo user-owned
+EOF
+echo "# user-owned agent" > "$REPO_PREEXISTING/.github/agents/csi-maintainer.agent.md"
+echo '#!/usr/bin/env bash
+echo user-owned installer' > "$REPO_PREEXISTING/.github/scripts/install-copilot-cli.sh"
+echo '#!/usr/bin/env bash
+echo user-owned sanitizer' > "$REPO_PREEXISTING/.github/scripts/sanitize-report.sh"
+echo "# user-owned generic ruleset" > "$REPO_PREEXISTING/.github/rulesets/generic.md"
+
+bash "$SCRIPT_DIR/install.sh" --repo-path "$REPO_PREEXISTING"
+bash "$SCRIPT_DIR/uninstall.sh" --repo-path "$REPO_PREEXISTING"
+
+assert_file_contains "$REPO_PREEXISTING/.github/workflows/csi-run.yml" "User workflow"
+assert_file_contains "$REPO_PREEXISTING/.github/agents/csi-maintainer.agent.md" "user-owned agent"
+assert_file_contains "$REPO_PREEXISTING/.github/scripts/install-copilot-cli.sh" "user-owned installer"
+assert_file_contains "$REPO_PREEXISTING/.github/scripts/sanitize-report.sh" "user-owned sanitizer"
+assert_file_contains "$REPO_PREEXISTING/.github/rulesets/generic.md" "user-owned generic ruleset"
+echo ""
+
 # ── Results ───────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Results: $PASS passed, $FAIL failed"

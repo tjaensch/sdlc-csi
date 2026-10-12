@@ -58,6 +58,47 @@ remove_file() {
   fi
 }
 
+remove_file_if_matches_source() {
+  local path="$1"
+  local source="$2"
+
+  if [[ ! -f "$path" ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "$source" ]]; then
+    echo "   ⏭ Source missing (preserve): $path"
+    return 0
+  fi
+
+  if [[ "$(realpath "$path" 2>/dev/null)" == "$(realpath "$source" 2>/dev/null)" ]]; then
+    echo "   ⏭ Source file (preserve): $path"
+    return 0
+  fi
+
+  if cmp -s -- "$path" "$source"; then
+    remove_file "$path"
+  else
+    echo "   ⏭ Modified or pre-existing (preserve): $path"
+  fi
+}
+
+remove_csi_workflow() {
+  local path="$REPO_PATH/.github/workflows/csi-run.yml"
+
+  if [[ ! -f "$path" ]]; then
+    return 0
+  fi
+
+  if [[ "$(realpath "$path" 2>/dev/null)" == "$(realpath "$SCRIPT_DIR/.github/workflows/csi-run.yml" 2>/dev/null)" ]]; then
+    echo "   ⏭ Source file (preserve): $path"
+  elif grep -Fq 'name: "CSI - Run"' "$path" && grep -Fq 'Continuous Self-Improvement' "$path"; then
+    remove_file "$path"
+  else
+    echo "   ⏭ Modified or pre-existing (preserve): $path"
+  fi
+}
+
 remove_installed_rulesets() {
   local rulesets_dir="$REPO_PATH/.github/rulesets"
   local bundled_rulesets_dir="$SCRIPT_DIR/rulesets"
@@ -69,7 +110,7 @@ remove_installed_rulesets() {
   local ruleset_name
   for ruleset_path in "$bundled_rulesets_dir"/*.md; do
     ruleset_name="$(basename "$ruleset_path")"
-    remove_file "$rulesets_dir/$ruleset_name"
+    remove_file_if_matches_source "$rulesets_dir/$ruleset_name" "$ruleset_path"
   done
 }
 
@@ -81,11 +122,11 @@ remove_dir_if_empty() {
   fi
 }
 
-# Remove installed files
-remove_file "$REPO_PATH/.github/workflows/csi-run.yml"
-remove_file "$REPO_PATH/.github/agents/csi-maintainer.agent.md"
-remove_file "$REPO_PATH/.github/scripts/install-copilot-cli.sh"
-remove_file "$REPO_PATH/.github/scripts/sanitize-report.sh"
+# Remove installed files without deleting pre-existing user-owned files
+remove_csi_workflow
+remove_file_if_matches_source "$REPO_PATH/.github/agents/csi-maintainer.agent.md" "$SCRIPT_DIR/.github/agents/csi-maintainer.agent.md"
+remove_file_if_matches_source "$REPO_PATH/.github/scripts/install-copilot-cli.sh" "$SCRIPT_DIR/.github/scripts/install-copilot-cli.sh"
+remove_file_if_matches_source "$REPO_PATH/.github/scripts/sanitize-report.sh" "$SCRIPT_DIR/.github/scripts/sanitize-report.sh"
 
 # Remove bundled rulesets without touching user-authored files
 remove_installed_rulesets
