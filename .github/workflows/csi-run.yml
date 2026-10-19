@@ -694,10 +694,10 @@ jobs:
             echo "| Field | Value |"
             echo "|-------|-------|"
             echo "| **Date** | ${DATE_STAMP} |"
-            echo "| **Mode** | $(if [[ \"$DRY_RUN\" == 'true' ]]; then echo '🔍 Dry Run'; else echo '🔧 Scan & Fix'; fi) |"
-            echo "| **Scan Status** | $(if [[ \"$SKIPPED\" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ \"$SCAN_SUCCESS\" == 'true' ]]; then echo '✅ Success'; elif [[ \"$SCAN_TIMED_OUT\" == 'true' ]]; then echo '⏱️ Timed Out (Partial)'; else echo '❌ Failed'; fi) |"
+            echo "| **Mode** | $(if [[ "$DRY_RUN" == 'true' ]]; then echo '🔍 Dry Run'; else echo '🔧 Scan & Fix'; fi) |"
+            echo "| **Scan Status** | $(if [[ "$SKIPPED" == 'true' ]]; then echo '⏭️ Skipped'; elif [[ "$SCAN_SUCCESS" == 'true' ]]; then echo '✅ Success'; elif [[ "$SCAN_TIMED_OUT" == 'true' ]]; then echo '⏱️ Timed Out (Partial)'; else echo '❌ Failed'; fi) |"
             if [[ "$SKIPPED" != 'true' ]]; then
-              echo "| **Changes Found** | $(if [[ \"$HAS_CHANGES\" == 'true' ]]; then echo 'Yes'; else echo 'No'; fi) |"
+              echo "| **Changes Found** | $(if [[ "$HAS_CHANGES" == 'true' ]]; then echo 'Yes'; else echo 'No'; fi) |"
             fi
             echo ""
 
